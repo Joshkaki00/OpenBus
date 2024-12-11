@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QWidget, QDialog, QSlider, QPushButton
 )
 
+from PyQt5.QtCore import Qt
 
 class InputChain(QWidget):
     """Class representing a single audio input chain with plugin management."""
