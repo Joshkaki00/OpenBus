@@ -109,15 +109,17 @@ class InputChain(QWidget):
         dialog.exec_()
 
 
-    def remove_plugin(self, plugin_name, label, button):
+    def remove_plugin(self, plugin_name, label, settings_btn, remove_btn):
         """Remove a plugin from the input chain."""
         self.plugins.remove(plugin_name)
 
         # Remove the label and button from the layout
         self.plugins_container.removeWidget(label)
-        self.plugins_container.removeWidget(button)
+        self.plugins_container.removeWidget(settings_btn)
+        self.plugins_container.removeWidget(remove_btn)
         label.deleteLater()
-        button.deleteLater()
+        settings_btn.deleteLater()
+        remove_btn.deleteLater()
 
         # Print feedback
         print(f"Removed {plugin_name} from Input {self.input_id}")
