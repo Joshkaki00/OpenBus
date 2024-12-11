@@ -4,6 +4,52 @@ from PyQt5.QtWidgets import (
 
 from PyQt5.QtCore import Qt
 
+class PluginSettingsDialog(QDialog):
+    """Dialog to adjust plugin parameters."""
+    def __init__(self, plugin_name):
+        super().__init__()
+        self.setWindowTitle(f"Settings for {plugin_name}")
+        self.setGeometry(200, 200, 300, 200)
+
+        # Main layout
+        layout = QVBoxLayout()
+
+        # Example parameter: Gain
+        self.gain_label = QLabel("Gain: 0")
+        self.gain_slider = QSlider(Qt.Horizontal)
+        self.gain_slider.setMinimum(0)
+        self.gain_slider.setMaximum(100)
+        self.gain_slider.setValue(0)
+        self.gain_slider.valueChanged.connect(self.update_gain_label)
+        layout.addWidget(self.gain_label)
+        layout.addWidget(self.gain_slider)
+
+        # Example parameter: Frequency
+        self.freq_label = QLabel("Frequency: 0 Hz")
+        self.freq_slider = QSlider(Qt.Horizontal)
+        self.freq_slider.setMinimum(20)
+        self.freq_slider.setMaximum(20000)
+        self.freq_slider.setValue(1000)
+        self.freq_slider.valueChanged.connect(self.update_freq_label)
+        layout.addWidget(self.freq_label)
+        layout.addWidget(self.freq_slider)
+
+        # Close button
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(self.close)
+        layout.addWidget(close_btn)
+
+        self.setLayout(layout)
+
+    def update_gain_label(self, value):
+        """Update the Gain label dynamically."""
+        self.gain_label.setText(f"Gain: {value}")
+
+    def update_freq_label(self, value):
+        """Update the Frequency label dynamically."""
+        self.freq_label.setText(f"Frequency: {value} Hz")
+
+
 class InputChain(QWidget):
     """Class representing a single audio input chain with plugin management."""
     def __init__(self, input_id):
