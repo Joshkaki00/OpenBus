@@ -42,16 +42,26 @@ class InputChain(QWidget):
         plugin_label = QLabel(plugin_name)
         plugin_layout.addWidget(plugin_label)
 
+        # Settings button
+        settings_btn = QPushButton("Settings")
+        settings_btn.clicked.connect(lambda: self.open_settings(plugin_name))
+        plugin_layout.addWidget(settings_btn)
+
         # Remove button
         remove_btn = QPushButton("Remove")
-        remove_btn.clicked.connect(lambda: self.remove_plugin(plugin_name, plugin_label, remove_btn))
+        remove_btn.clicked.connect(lambda: self.remove_plugin(plugin_name, plugin_label, settings_btn, remove_btn))
         plugin_layout.addWidget(remove_btn)
 
         # Add the plugin layout to the container
         self.plugins_container.addLayout(plugin_layout)
 
-        # Print feedback
         print(f"Added {plugin_name} to Input {self.input_id}")
+
+    def open_settings(self, plugin_name):
+        """Open the settings dialog for a plugin."""
+        dialog = PluginSettingsDialog(plugin_name)
+        dialog.exec_()
+
 
     def remove_plugin(self, plugin_name, label, button):
         """Remove a plugin from the input chain."""
