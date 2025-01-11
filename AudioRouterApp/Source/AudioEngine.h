@@ -25,3 +25,26 @@ public:
     void initializeFormats();                               // Initialize plugin formats
     void setupVirtualOutput(const juce::String& outputName);// Virtual output configuration
 
+private:
+    // Constants
+    static constexpr int maxInputs = 6; // Max number of input/output channels
+
+    // Nodes for inputs and outputs
+    std::array<juce::AudioProcessorGraph::Node*, maxInputs> inputNode;
+    std::array<juce::AudioProcessorGraph::Node*, maxInputs> outputNode;
+
+    // Plugin Management
+    juce::AudioPluginFormatManager formatManager; // Plugin format manager
+    juce::KnownPluginList knownPlugins;          // Tracks available plugins
+    juce::StringArray deadMansPedal;             // Crash recovery list
+
+    // Private Methods
+    std::unique_ptr<juce::AudioProcessor> createIOProcessor(bool isInput); // Create IO processors
+    std::unique_ptr<juce::AudioProcessor> loadPlugin(const juce::String& path); // Load plugins safely
+
+    // Copy and Move prevention
+    AudioEngine(const AudioEngine&) = delete;
+    AudioEngine& operator=(const AudioEngine&) = delete;
+};
+
+#endif // AUDIOENGINE_H
