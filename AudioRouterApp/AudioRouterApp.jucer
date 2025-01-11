@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="EPw4zw" name="AudioRouterApp" projectType="guiapp" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
+  <MAINGROUP id="td4zw9" name="AudioRouterApp">
+    <GROUP id="{18C0357D-BB2F-9526-E2AA-CC53D53895BA}" name="Source">
+      <FILE id="lVGpDC" name="Config.h" compile="0" resource="0" file="Source/Config.h"/>
+      <FILE id="QHu9pY" name="ZeroMQServer.cpp" compile="1" resource="0"
+            file="Source/ZeroMQServer.cpp"/>
+      <FILE id="gDSZF3" name="AudioEngine.cpp" compile="1" resource="0" file="Source/AudioEngine.cpp"/>
+      <FILE id="KSwJwH" name="AudioEngine.h" compile="0" resource="0" file="Source/AudioEngine.h"/>
+      <FILE id="XyTGZW" name="ZeroMQServer.h" compile="0" resource="0" file="Source/ZeroMQServer.h"/>
+      <FILE id="hKkaFa" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="HYGna3" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="DywlTd" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_PLUGINHOST_VST="1" JUCE_PLUGINHOST_VST3="1"
+               JUCE_PLUGINHOST_AU="1" JUCE_CUSTOM_VST3_SDK="1" JUCE_PLUGINHOST_LV2="1"/>
+  <EXPORTFORMATS>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="AudioRouterApp"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="AudioRouterApp"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_processors" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../../Users/joshkaki/JUCE/modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraLinkerFlags="-lzmq">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="AudioRouterApp" headerPath="/opt/homebrew/include&#10;/opt/homebrew/Cellar/nlohmann-json/3.11.3/include&#10;/opt/homebrew/Cellar/cppzmq/4.10.0/include&#10;~/vstsdk2.4&#10;~/vstsdk2.4/pluginterfaces&#10;~/vstsdk2.4/pluginterfaces/vst2.x&#10;~/VST_SDK/vst3sdk&#10;~/VST_SDK/vst3sdk/pluginterfaces&#10;~/VST_SDK/vst3sdk/pluginterfaces/vst"
+                       libraryPath="/opt/homebrew/lib" defines="VST2_SDK_ROOT=~/vstsdk2.4&#10;VST3_SDK_ROOT=~/VST_SDK/vst3sdk"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="AudioRouterApp" headerPath="/opt/homebrew/include&#10;/opt/homebrew/Cellar/nlohmann-json/3.11.3/include&#10;/opt/homebrew/Cellar/cppzmq/4.10.0/include&#10;~/vstsdk2.4&#10;~/vstsdk2.4/pluginterfaces&#10;~/vstsdk2.4/pluginterfaces/vst2.x&#10;~/VST_SDK/vst3sdk&#10;~/VST_SDK/vst3sdk/pluginterfaces&#10;~/VST_SDK/vst3sdk/pluginterfaces/vst"
+                       libraryPath="/opt/homebrew/lib" defines="VST2_SDK_ROOT=~/vstsdk2.4&#10;VST3_SDK_ROOT=~/VST_SDK/vst3sdk"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_processors" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../../Users/joshkaki/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../../Users/joshkaki/JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+  </EXPORTFORMATS>
+</JUCERPROJECT>
