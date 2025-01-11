@@ -11,7 +11,7 @@ OpenBus is a free, open-source application designed to be a virtual audio mixer,
 
 ## Installation
 
-To install OpenBus, follow these steps:
+OpenBus is currently available for Mac and Linux (Debian-based) users only. To install OpenBus, follow these steps:
 
 1. Clone the repository:
     ```bash
@@ -62,7 +62,8 @@ OpenBus is licensed under the MIT License. See the [LICENSE](LICENSE) file for m
 
 ## Contact
 
-For any questions or suggestions, please open an issue on GitHub or contact us at support@openbus.com.
+For any questions or suggestions, please open an issue on GitHub or contact me at joshkaki00@gmail.com.
+
 ## Disclaimer
 
 **Warning**: OpenBus is currently in development and does not yet have a stable release. Features and functionality may change, and there may be bugs or incomplete features. Use at your own risk.
