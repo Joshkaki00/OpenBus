@@ -35,3 +35,26 @@ private:
     std::unique_ptr<ZeroMQServer> zmqServer;
     std::thread zmqThread;
 
+    class MainWindow : public juce::DocumentWindow
+    {
+    public:
+        MainWindow(const juce::String& name, juce::Component* c, JUCEApplication& app)
+            : juce::DocumentWindow(name, juce::Colours::darkgrey, DocumentWindow::allButtons)
+        {
+            setUsingNativeTitleBar(true);
+            setContentOwned(c, true);
+            setResizable(true, true);
+            centreWithSize(getWidth(), getHeight());
+            setVisible(true);
+        }
+
+        void closeButtonPressed() override
+        {
+            JUCEApplication::getInstance()->systemRequestedQuit();
+        }
+    };
+
+    std::unique_ptr<MainWindow> mainWindow;
+};
+
+START_JUCE_APPLICATION(MainApplication)
