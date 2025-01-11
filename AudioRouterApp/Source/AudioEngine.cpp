@@ -87,3 +87,12 @@ void AudioEngine::handleCommand(const std::string& msg)
     }
 }
 
+// Initialize plugin formats
+void AudioEngine::initializeFormats()
+{
+    if (formatManager.getNumFormats() == 0)
+    {
+        formatManager.addDefaultFormats();
+    }
+}
+
