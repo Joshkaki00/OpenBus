@@ -22,4 +22,11 @@ public:
         juce::Process::setDockIconVisible(false); // Optional: Hide dock icon
     }
 
-    
+    void shutdown() override
+    {
+        zmqThread.join();
+        audioEngine.reset();
+        zmqServer.reset();
+        mainWindow = nullptr;
+    }
+
