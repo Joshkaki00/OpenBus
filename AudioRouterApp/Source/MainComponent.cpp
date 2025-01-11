@@ -98,3 +98,25 @@ void MainComponent::loadPreset()
         return;
     }
 
+    try
+    {
+        auto jsonText = presetPath.loadFileAsString().toStdString();
+        auto preset = json::parse(jsonText);
+
+        if (preset.contains("input") && preset.contains("output"))
+        {
+            inputDropdown.setText(juce::String(preset["input"].get<std::string>()), juce::dontSendNotification);
+            outputDropdown.setText(juce::String(preset["output"].get<std::string>()), juce::dontSendNotification);
+
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon, "Preset Loaded", "Preset loaded successfully.");
+        }
+        else
+        {
+            throw std::runtime_error("Invalid preset structure.");
+        }
+    }
+    catch (const std::exception& e)
+    {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Failed to load preset: " + juce::String(e.what()));
+    }
+}
