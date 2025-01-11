@@ -50,3 +50,18 @@ void MainComponent::resized()
     savePresetButton.setBounds(area.removeFromTop(rowHeight).removeFromLeft(area.getWidth() / 2).reduced(5));
     loadPresetButton.setBounds(area.removeFromTop(rowHeight).reduced(5));
 }
+
+// Populate Dropdowns
+void MainComponent::populateDropdowns()
+{
+    inputDropdown.addItem("Input 1", 1);
+    inputDropdown.addItem("Input 2", 2);
+    inputDropdown.addItem("Input 3", 3);
+
+    outputDropdown.addItem("Output 1", 1);
+    outputDropdown.addItem("Output 2", 2);
+    outputDropdown.addItem("Output 3", 3);
+
+    inputDropdown.setSelectedId(1);
+    outputDropdown.setSelectedId(1);
+}
