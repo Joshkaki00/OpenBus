@@ -98,6 +98,8 @@ OpenBus uses the following frameworks and libraries:
 - **PyQt5**: For the user interface.
 - **ZeroMQ**: For messaging.
 - **Nlohmann JSON**: For JSON parsing.
-- **Virtual Audio Drivers**: Blackhole for Mac, PulseAudio and ALSA for Linux.## Disclaimer
+- **Virtual Audio Drivers**: Blackhole for Mac, PulseAudio and ALSA for Linux.
+
+## Disclaimer
 
 **Warning**: OpenBus is currently in development and does not yet have a stable release. Features and functionality may change, and there may be bugs or incomplete features. Use at your own risk.
