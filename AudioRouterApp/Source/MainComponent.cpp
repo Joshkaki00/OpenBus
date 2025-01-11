@@ -87,3 +87,14 @@ void MainComponent::savePreset()
     }
 }
 
+// Load Preset
+void MainComponent::loadPreset()
+{
+    auto presetPath = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("preset.json");
+
+    if (!presetPath.existsAsFile())
+    {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Preset file not found!");
+        return;
+    }
+
