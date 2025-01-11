@@ -28,3 +28,12 @@ MainComponent::~MainComponent()
     loadPresetButton.removeListener(this);
 }
 
+// GUI Painting
+void MainComponent::paint(juce::Graphics& g)
+{
+    g.fillAll(juce::Colours::darkgrey);
+    g.setColour(juce::Colours::white);
+    g.setFont(16.0f);
+    g.drawFittedText("Audio Router", getLocalBounds(), juce::Justification::centred, 1);
+}
+
