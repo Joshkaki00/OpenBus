@@ -30,3 +30,8 @@ public:
         mainWindow = nullptr;
     }
 
+private:
+    std::unique_ptr<AudioEngine> audioEngine;
+    std::unique_ptr<ZeroMQServer> zmqServer;
+    std::thread zmqThread;
+
