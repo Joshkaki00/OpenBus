@@ -53,4 +53,37 @@ void AudioEngine::handleCommand(const std::string& msg)
                     {"EQ", "/Users/Plugins/EQ.vst3"}
                 };
 
-                
+                if (pluginPaths.find(pluginName) != pluginPaths.end())
+                {
+                    juce::File pluginFile(pluginPaths[pluginName]);
+
+                    if (pluginFile.existsAsFile())
+                    {
+                        addPlugin(pluginFile.getFullPathName(), input);
+                    }
+                    else
+                    {
+                        std::cerr << "Invalid plugin path: " << pluginFile.getFullPathName().toStdString() << std::endl;
+                    }
+                }
+                else
+                {
+                    std::cerr << "Plugin not found: " << pluginName << std::endl;
+                }
+            }
+            else
+            {
+                std::cerr << "Missing 'path' or 'input' for add_plugin command." << std::endl;
+            }
+        }
+        else
+        {
+            std::cerr << "Unknown action specified: " << action << std::endl;
+        }
+    }
+    catch (const json::exception& e)
+    {
+        std::cerr << "JSON parsing error: " << e.what() << std::endl;
+    }
+}
+
