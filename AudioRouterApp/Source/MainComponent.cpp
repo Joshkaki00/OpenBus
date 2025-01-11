@@ -120,3 +120,16 @@ void MainComponent::loadPreset()
         juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Failed to load preset: " + juce::String(e.what()));
     }
 }
+
+// Button Click Handler
+void MainComponent::buttonClicked(juce::Button* button)
+{
+    if (button == &savePresetButton)
+    {
+        savePreset();
+    }
+    else if (button == &loadPresetButton)
+    {
+        loadPreset();
+    }
+}
