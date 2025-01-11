@@ -25,3 +25,16 @@ void AudioEngine::setupGraph()
     }
 }
 
+// Handle JSON Commands
+void AudioEngine::handleCommand(const std::string& msg)
+{
+    try
+    {
+        auto command = json::parse(msg);
+
+        if (!command.contains("action"))
+        {
+            std::cerr << "Command missing 'action' key." << std::endl;
+            return;
+        }
+
