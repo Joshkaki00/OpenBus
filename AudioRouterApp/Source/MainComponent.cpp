@@ -37,3 +37,16 @@ void MainComponent::paint(juce::Graphics& g)
     g.drawFittedText("Audio Router", getLocalBounds(), juce::Justification::centred, 1);
 }
 
+// Resize Components
+void MainComponent::resized()
+{
+    auto area = getLocalBounds().reduced(20);
+    auto rowHeight = 40;
+
+    inputDropdown.setBounds(area.removeFromTop(rowHeight));
+    area.removeFromTop(10);
+    outputDropdown.setBounds(area.removeFromTop(rowHeight));
+    area.removeFromTop(20);
+    savePresetButton.setBounds(area.removeFromTop(rowHeight).removeFromLeft(area.getWidth() / 2).reduced(5));
+    loadPresetButton.setBounds(area.removeFromTop(rowHeight).reduced(5));
+}
