@@ -175,3 +175,26 @@ std::unique_ptr<juce::AudioProcessor> AudioEngine::createIOProcessor(bool isInpu
     );
 }
 
+// Setup Virtual Output
+void AudioEngine::setupVirtualOutput(const juce::String& outputName)
+{
+    juce::AudioDeviceManager deviceManager;
+
+    auto* currentDevice = deviceManager.getCurrentAudioDevice();
+    if (currentDevice != nullptr)
+    {
+        juce::StringArray outputs = currentDevice->getOutputChannelNames();
+        if (outputs.contains(outputName))
+        {
+            std::cerr << "Output set to: " << outputName << std::endl;
+        }
+        else
+        {
+            std::cerr << "Output not found!" << std::endl;
+        }
+    }
+    else
+    {
+        std::cerr << "No audio device available!" << std::endl;
+    }
+}
