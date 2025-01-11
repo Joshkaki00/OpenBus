@@ -134,3 +134,35 @@ std::unique_ptr<juce::AudioProcessor> AudioEngine::loadPlugin(const juce::String
     return plugin;
 }
 
+// Add Plugin
+void AudioEngine::addPlugin(const juce::String& path, int inputIndex)
+{
+    if (inputIndex < 0 || inputIndex >= maxInputs)
+    {
+        std::cerr << "Invalid input index specified." << std::endl;
+        return;
+    }
+
+    auto plugin = loadPlugin(path);
+
+    if (plugin)
+    {
+        auto node = addNode(std::move(plugin));
+
+        for (int ch = 0; ch < maxInputs; ++ch)
+        {
+            if (inputNode[ch] && outputNode[ch])
+            {
+                addConnection({ { inputNode[ch]->nodeID, 0 }, { node->nodeID, 0 } });
+                addConnection({ { node->nodeID, 0 }, { outputNode[ch]->nodeID, 0 } });
+            }
+        }
+
+        std::cerr << "Plugin added successfully to input: " << inputIndex << std::endl;
+    }
+    else
+    {
+        std::cerr << "Failed to add plugin at path: " << path << std::endl;
+    }
+}
+
