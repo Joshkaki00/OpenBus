@@ -133,3 +133,16 @@ void MainComponent::buttonClicked(juce::Button* button)
         loadPreset();
     }
 }
+
+// ComboBox Change Handler
+void MainComponent::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged)
+{
+    if (comboBoxThatHasChanged == &inputDropdown)
+    {
+        DBG("Input selected: " << inputDropdown.getText());
+    }
+    else if (comboBoxThatHasChanged == &outputDropdown)
+    {
+        DBG("Output selected: " << outputDropdown.getText());
+    }
+}
