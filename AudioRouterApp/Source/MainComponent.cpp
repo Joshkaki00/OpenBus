@@ -19,3 +19,12 @@ MainComponent::MainComponent()
     setSize(400, 300);
 }
 
+// Destructor
+MainComponent::~MainComponent()
+{
+    inputDropdown.removeListener(this);
+    outputDropdown.removeListener(this);
+    savePresetButton.removeListener(this);
+    loadPresetButton.removeListener(this);
+}
+
