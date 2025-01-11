@@ -166,3 +166,12 @@ void AudioEngine::addPlugin(const juce::String& path, int inputIndex)
     }
 }
 
+// Create IO Processor
+std::unique_ptr<juce::AudioProcessor> AudioEngine::createIOProcessor(bool isInput)
+{
+    return std::make_unique<juce::AudioProcessorGraph::AudioGraphIOProcessor>(
+        isInput ? juce::AudioProcessorGraph::AudioGraphIOProcessor::audioInputNode
+                : juce::AudioProcessorGraph::AudioGraphIOProcessor::audioOutputNode
+    );
+}
+
