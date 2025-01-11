@@ -16,3 +16,21 @@ public:
     void paint(juce::Graphics&) override;
     void resized() override;
 
+private:
+    // GUI Components
+    juce::ComboBox inputDropdown;
+    juce::ComboBox outputDropdown;
+    juce::TextButton savePresetButton{"Save Preset"};
+    juce::TextButton loadPresetButton{"Load Preset"};
+
+    // Helper Methods
+    void populateDropdowns();
+    void savePreset();
+    void loadPreset();
+
+    // Listeners
+    void buttonClicked(juce::Button* button) override;
+    void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
+};
