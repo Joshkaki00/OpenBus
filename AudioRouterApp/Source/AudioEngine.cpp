@@ -96,3 +96,41 @@ void AudioEngine::initializeFormats()
     }
 }
 
+// Load Plugin
+std::unique_ptr<juce::AudioProcessor> AudioEngine::loadPlugin(const juce::String& path)
+{
+    initializeFormats();
+
+    juce::String errorMessage;
+    juce::File pluginFile(path);
+
+    if (!pluginFile.existsAsFile())
+    {
+        std::cerr << "Invalid plugin path: " << path << std::endl;
+        return nullptr;
+    }
+
+    juce::PluginDescription desc;
+    juce::AudioPluginFormat* format = formatManager.getFormat(0);
+    juce::OwnedArray<juce::PluginDescription> results;
+
+    format->findAllTypesForFile(results, pluginFile.getFullPathName());
+
+    if (results.isEmpty())
+    {
+        std::cerr << "No matching plugins found for: " << path << std::endl;
+        return nullptr;
+    }
+
+    auto plugin = formatManager.createPluginInstance(*results[0], 44100.0, 512, errorMessage);
+
+    if (!plugin)
+    {
+        std::cerr << "Failed to load plugin: " << errorMessage.toStdString() << std::endl;
+        return nullptr;
+    }
+
+    std::cerr << "Plugin loaded successfully: " << results[0]->name.toStdString() << std::endl;
+    return plugin;
+}
+
