@@ -65,3 +65,25 @@ void MainComponent::populateDropdowns()
     inputDropdown.setSelectedId(1);
     outputDropdown.setSelectedId(1);
 }
+
+// Save Preset
+void MainComponent::savePreset()
+{
+    auto presetPath = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("preset.json");
+
+    json preset = {
+        {"input", inputDropdown.getText().toStdString()},
+        {"output", outputDropdown.getText().toStdString()}
+    };
+
+    try
+    {
+        presetPath.replaceWithText(preset.dump(4)); // Save JSON with proper formatting
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon, "Preset Saved", "Preset saved successfully.");
+    }
+    catch (const std::exception& e)
+    {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Failed to save preset: " + juce::String(e.what()));
+    }
+}
+
