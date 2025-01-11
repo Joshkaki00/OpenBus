@@ -85,7 +85,7 @@ We welcome contributions from the community. To contribute:
 
 ## License
 
-OpenBus is licensed under the GNU 3 License. See the [LICENSE](LICENSE) file for more details.
+OpenBus is licensed under the GLP 3 License. See the [LICENSE](LICENSE) file for more details.
 
 ## Contact
 
