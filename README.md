@@ -11,7 +11,7 @@ OpenBus is a free, open-source application designed to be a virtual audio mixer,
 
 ## Installation
 
-OpenBus is currently available for Mac and Linux (Debian-based) users only. To install OpenBus, follow these steps:
+### MacOS
 
 1. Clone the repository:
     ```bash
@@ -28,6 +28,33 @@ OpenBus is currently available for Mac and Linux (Debian-based) users only. To i
 4. Start the application:
     ```bash
     npm start
+    ```
+5. Install Blackhole for virtual audio routing:
+    ```bash
+    brew install blackhole-2ch
+    ```
+
+### Linux (Debian-based)
+
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/yourusername/openbus.git
+    ```
+2. Navigate to the project directory:
+    ```bash
+    cd openbus
+    ```
+3. Install the required dependencies:
+    ```bash
+    npm install
+    ```
+4. Start the application:
+    ```bash
+    npm start
+    ```
+5. Ensure PulseAudio and ALSA are installed for virtual audio routing:
+    ```bash
+    sudo apt-get install pulseaudio alsa-utils
     ```
 
 ## Usage
@@ -64,6 +91,13 @@ OpenBus is licensed under the MIT License. See the [LICENSE](LICENSE) file for m
 
 For any questions or suggestions, please open an issue on GitHub or contact me at joshkaki00@gmail.com.
 
-## Disclaimer
+## Dependencies
+
+OpenBus uses the following frameworks and libraries:
+- **JUCE**: For the audio engine.
+- **PyQt5**: For the user interface.
+- **ZeroMQ**: For messaging.
+- **Nlohmann JSON**: For JSON parsing.
+- **Virtual Audio Drivers**: Blackhole for Mac, PulseAudio and ALSA for Linux.## Disclaimer
 
 **Warning**: OpenBus is currently in development and does not yet have a stable release. Features and functionality may change, and there may be bugs or incomplete features. Use at your own risk.
