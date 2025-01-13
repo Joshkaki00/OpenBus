@@ -1,38 +1,33 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <nlohmann/json.hpp>
 #include "AudioEngine.h"
-
-using json = nlohmann::json;
 
 class MainComponent : public juce::Component,
                       public juce::Button::Listener,
                       public juce::ComboBox::Listener
 {
 public:
-    MainComponent(AudioEngine& audioEngine);
+    explicit MainComponent(AudioEngine& engine); // Constructor with AudioEngine reference
     ~MainComponent() override;
 
     void paint(juce::Graphics&) override;
     void resized() override;
 
 private:
-    // Reference to AudioEngine
-    AudioEngine& audioEngine;
-
     // GUI Components
     juce::ComboBox inputDropdown;
     juce::ComboBox outputDropdown;
     juce::TextButton savePresetButton{"Save Preset"};
     juce::TextButton loadPresetButton{"Load Preset"};
-    juce::Label statusLabel{"Status", "Ready"};
+    juce::Label statusLabel;
+
+    AudioEngine& audioEngine; // Reference to the AudioEngine
 
     // Helper Methods
     void populateDropdowns();
     void savePreset();
     void loadPreset();
-    void updateStatus(const juce::String& message);
 
     // Listeners
     void buttonClicked(juce::Button* button) override;

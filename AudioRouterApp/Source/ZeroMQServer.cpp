@@ -3,9 +3,9 @@
 
 // Constructor
 ZeroMQServer::ZeroMQServer(AudioEngine& engine)
-    : context(1), // Initialize the context first
-      socket(context, zmq::socket_type::rep), // Initialize the socket after the context
-      audioEngine(engine) // Finally, initialize the audioEngine
+    : audioEngine(engine), // Ensure the initialization order matches declaration order
+      context(1),          // Initialize the context first
+      socket(context, zmq::socket_type::rep) // Initialize the socket after the context
 {
     try
     {
@@ -42,7 +42,7 @@ void ZeroMQServer::listen()
     {
         try
         {
-            zmq::poll(&items[0], 1, std::chrono::milliseconds(10)); // Poll with a 10 ms timeout
+            zmq::poll(&items[0], 1, std::chrono::milliseconds(10)); // Poll every 10 ms
 
             if (items[0].revents & ZMQ_POLLIN)
             {
@@ -50,50 +50,24 @@ void ZeroMQServer::listen()
                 auto recvResult = socket.recv(request, zmq::recv_flags::none);
                 if (!recvResult)
                 {
-                    std::cerr << "Failed to receive message from client" << std::endl;
-                    continue; // Retry on receive failure
+                    std::cerr << "ZeroMQ receive error!" << std::endl;
+                    continue; // Retry instead of exiting
                 }
 
+                // Handle received message
                 std::string msg(static_cast<char*>(request.data()), request.size());
-                std::cout << "Received command: " << msg << std::endl;
+                std::cerr << "Received command: " << msg << std::endl; // Debugging log
+                audioEngine.handleCommand(msg);
 
-                // Handle the command
-                handleCommand(msg);
+                // Send reply
+                zmq::message_t reply(5);
+                memcpy(reply.data(), "Done", 5);
+                socket.send(reply, zmq::send_flags::none);
             }
         }
         catch (const zmq::error_t& e)
         {
             std::cerr << "ZeroMQ server error: " << e.what() << std::endl;
         }
-    }
-}
-
-// Handle incoming commands
-void ZeroMQServer::handleCommand(const std::string& msg)
-{
-    try
-    {
-        audioEngine.handleCommand(msg); // Forward the command to the audio engine
-        sendResponse("Command executed successfully");
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << "Command handling error: " << e.what() << std::endl;
-        sendResponse(std::string("Error: ") + e.what());
-    }
-}
-
-// Send response to the client
-void ZeroMQServer::sendResponse(const std::string& response)
-{
-    try
-    {
-        zmq::message_t reply(response.size());
-        memcpy(reply.data(), response.c_str(), response.size());
-        socket.send(reply, zmq::send_flags::none);
-    }
-    catch (const zmq::error_t& e)
-    {
-        std::cerr << "Failed to send response: " << e.what() << std::endl;
     }
 }
