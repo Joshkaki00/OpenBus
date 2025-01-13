@@ -1,13 +1,14 @@
 #include "MainComponent.h"
 
 // Constructor
-MainComponent::MainComponent()
+MainComponent::MainComponent(AudioEngine& engine) : audioEngine(engine)
 {
     // Add and configure components
     addAndMakeVisible(inputDropdown);
     addAndMakeVisible(outputDropdown);
     addAndMakeVisible(savePresetButton);
     addAndMakeVisible(loadPresetButton);
+    addAndMakeVisible(statusLabel);
 
     inputDropdown.addListener(this);
     outputDropdown.addListener(this);
@@ -34,7 +35,7 @@ void MainComponent::paint(juce::Graphics& g)
     g.fillAll(juce::Colours::darkgrey);
     g.setColour(juce::Colours::white);
     g.setFont(16.0f);
-    g.drawFittedText("Audio Router", getLocalBounds(), juce::Justification::centred, 1);
+    g.drawFittedText("Audio Router", getLocalBounds().reduced(20), juce::Justification::centred, 1);
 }
 
 // Resize Components
@@ -49,6 +50,7 @@ void MainComponent::resized()
     area.removeFromTop(20);
     savePresetButton.setBounds(area.removeFromTop(rowHeight).removeFromLeft(area.getWidth() / 2).reduced(5));
     loadPresetButton.setBounds(area.removeFromTop(rowHeight).reduced(5));
+    statusLabel.setBounds(area.removeFromTop(30));
 }
 
 // Populate Dropdowns
@@ -79,11 +81,11 @@ void MainComponent::savePreset()
     try
     {
         presetPath.replaceWithText(preset.dump(4)); // Save JSON with proper formatting
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon, "Preset Saved", "Preset saved successfully.");
+        updateStatus("Preset saved successfully.");
     }
     catch (const std::exception& e)
     {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Failed to save preset: " + juce::String(e.what()));
+        updateStatus("Failed to save preset: " + juce::String(e.what()));
     }
 }
 
@@ -94,7 +96,7 @@ void MainComponent::loadPreset()
 
     if (!presetPath.existsAsFile())
     {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Preset file not found!");
+        updateStatus("Preset file not found!");
         return;
     }
 
@@ -107,8 +109,7 @@ void MainComponent::loadPreset()
         {
             inputDropdown.setText(juce::String(preset["input"].get<std::string>()), juce::dontSendNotification);
             outputDropdown.setText(juce::String(preset["output"].get<std::string>()), juce::dontSendNotification);
-
-            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon, "Preset Loaded", "Preset loaded successfully.");
+            updateStatus("Preset loaded successfully.");
         }
         else
         {
@@ -117,8 +118,14 @@ void MainComponent::loadPreset()
     }
     catch (const std::exception& e)
     {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Failed to load preset: " + juce::String(e.what()));
+        updateStatus("Failed to load preset: " + juce::String(e.what()));
     }
+}
+
+// Update Status Label
+void MainComponent::updateStatus(const juce::String& message)
+{
+    statusLabel.setText(message, juce::dontSendNotification);
 }
 
 // Button Click Handler

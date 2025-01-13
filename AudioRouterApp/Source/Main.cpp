@@ -1,48 +1,45 @@
 #include <JuceHeader.h>
-#include "AudioEngine.h"
-#include "ZeroMQServer.h"
 #include "MainComponent.h"
-#include "Config.h"
+#include "AudioEngine.h"
 
-class MainApplication : public juce::JUCEApplication
+class AudioRouterApplication : public juce::JUCEApplication
 {
 public:
-    const juce::String getApplicationName() override { return "Audio Engine"; }
-    const juce::String getApplicationVersion() override { return "1.0"; }
+    // Return the name of the application
+    const juce::String getApplicationName() override { return "Audio Router"; }
 
+    // Return the version of the application
+    const juce::String getApplicationVersion() override { return "1.0.0"; }
+
+    // Called when the application starts
     void initialise(const juce::String&) override
     {
         audioEngine = std::make_unique<AudioEngine>();
 
-        // Initialize plugin formats
-        zmqServer = std::make_unique<ZeroMQServer>(*audioEngine);
-        zmqThread = std::thread([this]() { zmqServer->listen(); });
-
-        mainWindow = std::make_unique<MainWindow>("AudioRouterApp", new MainComponent(), *this);
-        juce::Process::setDockIconVisible(false); // Optional: Hide dock icon
+        // Create the main application window
+        mainWindow = std::make_unique<MainWindow>("Audio Router", *audioEngine);
     }
 
+    // Called when the application is shutting down
     void shutdown() override
     {
-        zmqThread.join();
-        audioEngine.reset();
-        zmqServer.reset();
-        mainWindow = nullptr;
+        mainWindow = nullptr; // Clean up the main window
+        audioEngine = nullptr; // Clean up the audio engine
     }
 
 private:
-    std::unique_ptr<AudioEngine> audioEngine;
-    std::unique_ptr<ZeroMQServer> zmqServer;
-    std::thread zmqThread;
-
     class MainWindow : public juce::DocumentWindow
     {
     public:
-        MainWindow(const juce::String& name, juce::Component* c, JUCEApplication& app)
-            : juce::DocumentWindow(name, juce::Colours::darkgrey, DocumentWindow::allButtons)
+        MainWindow(const juce::String& name, AudioEngine& engine)
+            : juce::DocumentWindow(name,
+                                   juce::Colours::darkgrey,
+                                   DocumentWindow::allButtons)
         {
+            // Set the main component for the window
             setUsingNativeTitleBar(true);
-            setContentOwned(c, true);
+            setContentOwned(new MainComponent(engine), true);
+
             setResizable(true, true);
             centreWithSize(getWidth(), getHeight());
             setVisible(true);
@@ -50,11 +47,14 @@ private:
 
         void closeButtonPressed() override
         {
-            JUCEApplication::getInstance()->systemRequestedQuit();
+            // Handle application close event
+            juce::JUCEApplication::getInstance()->systemRequestedQuit();
         }
     };
 
-    std::unique_ptr<MainWindow> mainWindow;
+    std::unique_ptr<MainWindow> mainWindow; // The main application window
+    std::unique_ptr<AudioEngine> audioEngine; // The audio engine
 };
 
-START_JUCE_APPLICATION(MainApplication)
+// Start the JUCE application
+START_JUCE_APPLICATION(AudioRouterApplication)

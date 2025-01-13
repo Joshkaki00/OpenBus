@@ -8,41 +8,31 @@
 
 using json = nlohmann::json;
 
-// AudioEngine Class
 class AudioEngine : public juce::AudioProcessorGraph
 {
 public:
-    // Constructor and Destructor
     AudioEngine();
     ~AudioEngine() override = default;
 
-    // Public Methods
-    void setupGraph();                                      // Setup the audio graph
-    void handleCommand(const std::string& msg);             // Handle JSON commands
-    void addPlugin(const juce::String& path, int inputIndex); // Add plugin dynamically
-    void setPluginParam(const juce::String& pluginId,       // Set plugin parameter
-                        const juce::String& paramId, float value);
-    void initializeFormats();                               // Initialize plugin formats
-    void setupVirtualOutput(const juce::String& outputName);// Virtual output configuration
+    void setupGraph();
+    void handleCommand(const std::string& msg);
+    void addPlugin(const juce::String& path, int inputIndex);
+    void setPluginParam(const juce::String& pluginId, const juce::String& paramId, float value);
+    void initializeFormats();
+    void setupVirtualOutput(const juce::String& outputName);
 
 private:
-    // Constants
-    static constexpr int maxInputs = 6; // Max number of input/output channels
-
-    // Nodes for inputs and outputs
+    static constexpr int maxInputs = 6;
     std::array<juce::AudioProcessorGraph::Node*, maxInputs> inputNode;
     std::array<juce::AudioProcessorGraph::Node*, maxInputs> outputNode;
 
-    // Plugin Management
-    juce::AudioPluginFormatManager formatManager; // Plugin format manager
-    juce::KnownPluginList knownPlugins;          // Tracks available plugins
-    juce::StringArray deadMansPedal;             // Crash recovery list
+    juce::AudioPluginFormatManager formatManager;
+    juce::KnownPluginList knownPlugins;
+    juce::StringArray deadMansPedal;
 
-    // Private Methods
-    std::unique_ptr<juce::AudioProcessor> createIOProcessor(bool isInput); // Create IO processors
-    std::unique_ptr<juce::AudioProcessor> loadPlugin(const juce::String& path); // Load plugins safely
+    std::unique_ptr<juce::AudioProcessor> createIOProcessor(bool isInput);
+    std::unique_ptr<juce::AudioProcessor> loadPlugin(const juce::String& path);
 
-    // Copy and Move prevention
     AudioEngine(const AudioEngine&) = delete;
     AudioEngine& operator=(const AudioEngine&) = delete;
 };
