@@ -3,9 +3,9 @@
 
 // Constructor
 ZeroMQServer::ZeroMQServer(AudioEngine& engine)
-    : audioEngine(engine),
-      context(1), // Create a single-threaded context
-      socket(context, zmq::socket_type::rep) // Create a REP (reply) socket
+    : context(1), // Initialize the context first
+      socket(context, zmq::socket_type::rep), // Initialize the socket after the context
+      audioEngine(engine) // Finally, initialize the audioEngine
 {
     try
     {
