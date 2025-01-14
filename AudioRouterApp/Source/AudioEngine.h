@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <nlohmann/json.hpp> // JSON library for device management and preset saving/loading
 #include <vector>
 
 class AudioEngine
@@ -9,11 +10,12 @@ public:
     AudioEngine();
     ~AudioEngine();
 
+    // Plugin management
     bool loadPlugin(const juce::File& file);
     bool savePreset(const juce::File& file);
     bool loadPreset(const juce::File& file);
 
-    // New functions
+    // Device management
     nlohmann::json getDeviceList();
     nlohmann::json setInputDevice(const std::string& deviceName);
     nlohmann::json setOutputDevice(const std::string& deviceName);

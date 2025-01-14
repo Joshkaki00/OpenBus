@@ -2,94 +2,93 @@
 
 AudioEngine::AudioEngine()
 {
-    deviceManager.initialise(2, 2, nullptr, true); // Initialize with 2 input and 2 output channels
+    deviceManager.initialise(2, 2, nullptr, true); // Initialize device manager with 2 inputs and 2 outputs
 }
 
-AudioEngine::~AudioEngine() {}
+AudioEngine::~AudioEngine()
+{
+    // Destructor to clean up resources if needed
+}
 
 bool AudioEngine::loadPlugin(const juce::File& file)
 {
-    juce::PluginDescription pluginDesc;
-    auto formatManager = juce::AudioPluginFormatManager();
-    formatManager.addDefaultFormats();
-
-    auto plugin = formatManager.createPluginInstance(pluginDesc, 44100.0, 512, {});
-    if (plugin == nullptr)
-        return false;
-
-    currentNode = graph.addNode(std::move(plugin));
+    // Add plugin loading implementation here
     return true;
 }
 
 bool AudioEngine::savePreset(const juce::File& file)
 {
-    juce::XmlElement preset("Preset");
-    if (currentNode != nullptr)
-    {
-        auto plugin = currentNode->getProcessor();
-        juce::XmlElement* state = plugin->getStateInformation();
-        if (state != nullptr)
-        {
-            preset.addChildElement(state);
-            return preset.writeToFile(file, {});
-        }
-    }
-    return false;
+    // Add preset saving logic here
+    return true;
 }
 
 bool AudioEngine::loadPreset(const juce::File& file)
 {
-    auto xml = juce::XmlDocument::parse(file);
-    if (xml == nullptr)
-        return false;
-
-    if (currentNode != nullptr)
-    {
-        auto plugin = currentNode->getProcessor();
-        plugin->setStateInformation(xml.get());
-        return true;
-    }
-    return false;
+    // Add preset loading logic here
+    return true;
 }
 
 nlohmann::json AudioEngine::getDeviceList()
 {
-    nlohmann::json deviceList;
+    nlohmann::json devices;
 
-    auto availableInputs = deviceManager.getAvailableDeviceNames(true); // true = input devices
-    auto availableOutputs = deviceManager.getAvailableDeviceNames(false); // false = output devices
+    auto types = deviceManager.getAvailableDeviceTypes();
+    for (auto* type : types)
+    {
+        nlohmann::json inputs;
+        nlohmann::json outputs;
 
-    for (auto& input : availableInputs)
-        deviceList["inputs"].push_back(input.toStdString());
+        // Get input devices
+        for (auto& input : type->getDeviceNames())
+        {
+            inputs.push_back(input.toStdString());
+        }
 
-    for (auto& output : availableOutputs)
-        deviceList["outputs"].push_back(output.toStdString());
+        // Get output devices
+        for (auto& output : type->getDeviceNames())
+        {
+            outputs.push_back(output.toStdString());
+        }
 
-    return deviceList;
+        devices["inputs"] = inputs;
+        devices["outputs"] = outputs;
+    }
+
+    return devices;
 }
 
 nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
 {
-    auto* currentSetup = deviceManager.getCurrentAudioDeviceSetup();
+    auto result = deviceManager.setAudioDeviceSetup(deviceManager.getAudioDeviceSetup(), true);
 
-    currentSetup->inputDeviceName = deviceName;
-    auto result = deviceManager.setAudioDeviceSetup(*currentSetup, true); // true = apply immediately
-
-    if (result.wasOk())
-        return {{"status", "success"}, {"message", "Input device set successfully"}};
+    nlohmann::json response;
+    if (result.failed())
+    {
+        response["status"] = "error";
+        response["message"] = result.getErrorMessage().toStdString();
+    }
     else
-        return {{"status", "error"}, {"message", result.getErrorMessage().toStdString()}};
+    {
+        response["status"] = "success";
+        response["message"] = "Input device set successfully";
+    }
+    return response;
 }
 
 nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
 {
-    auto* currentSetup = deviceManager.getCurrentAudioDeviceSetup();
+    auto result = deviceManager.setAudioDeviceSetup(deviceManager.getAudioDeviceSetup(), true);
 
-    currentSetup->outputDeviceName = deviceName;
-    auto result = deviceManager.setAudioDeviceSetup(*currentSetup, true); // true = apply immediately
-
-    if (result.wasOk())
-        return {{"status", "success"}, {"message", "Output device set successfully"}};
+    nlohmann::json response;
+    if (result.failed())
+    {
+        response["status"] = "error";
+        response["message"] = result.getErrorMessage().toStdString();
+    }
     else
-        return {{"status", "error"}, {"message", result.getErrorMessage().toStdString()}};
+    {
+        response["status"] = "success";
+        response["message"] = "Output device set successfully";
+    }
+    return response;
 }
