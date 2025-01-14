@@ -9,10 +9,14 @@ json AudioEngine::getDeviceList() {
         auto inputDevices = currentDevice->getInputChannelNames();
         auto outputDevices = currentDevice->getOutputChannelNames();
 
+        // Convert JUCE StringArray to std::vector<std::string>
+        std::vector<std::string> inputs(inputDevices.begin(), inputDevices.end());
+        std::vector<std::string> outputs(outputDevices.begin(), outputDevices.end());
+
         return {
             {"status", "success"},
-            {"inputs", inputDevices.toStdVector()},
-            {"outputs", outputDevices.toStdVector()}
+            {"inputs", inputs},
+            {"outputs", outputs}
         };
     }
 
