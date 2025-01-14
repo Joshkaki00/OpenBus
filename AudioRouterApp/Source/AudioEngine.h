@@ -1,22 +1,20 @@
-#pragma once
+#ifndef AUDIOENGINE_H
+#define AUDIOENGINE_H
 
-#include <JuceHeader.h>
-#include <string>
-#include <nlohmann/json.hpp> // Assuming you're using JSON for saving presets
+#include <nlohmann/json.hpp>
+#include <juce_audio_devices/juce_audio_devices.h>
 
-class AudioEngine
-{
+using json = nlohmann::json;
+
+class AudioEngine {
 public:
     AudioEngine();
-    ~AudioEngine();
-
-    void savePreset(const std::string& presetName);
-    void loadPreset(const std::string& presetName);
-
-    nlohmann::json getDeviceList();
-    void setInputDevice(const std::string& deviceName);
-    void setOutputDevice(const std::string& deviceName);
+    json getDeviceList();
+    json setInputDevice(const std::string& deviceName);
+    json setOutputDevice(const std::string& deviceName);
 
 private:
     juce::AudioDeviceManager deviceManager;
 };
+
+#endif // AUDIOENGINE_H
