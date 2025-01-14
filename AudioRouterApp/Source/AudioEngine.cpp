@@ -45,15 +45,13 @@ json AudioEngine::getDeviceList()
 json AudioEngine::setInputDevice(const std::string& deviceName)
 {
     json response;
-
     juce::AudioDeviceManager::AudioDeviceSetup setup;
     deviceManager.getAudioDeviceSetup(setup);
 
     setup.inputDeviceName = deviceName;
+    auto result = deviceManager.setAudioDeviceSetup(setup, true);
 
-    bool setupSuccess = deviceManager.setAudioDeviceSetup(setup, true);
-
-    if (setupSuccess) // Check if setup was successful
+    if (result.wasOk()) // Check if the setup succeeded
     {
         response["status"] = "success";
         response["message"] = "Input device set successfully";
@@ -61,25 +59,22 @@ json AudioEngine::setInputDevice(const std::string& deviceName)
     else
     {
         response["status"] = "error";
-        response["message"] = "Failed to set input device"; // Generic error message
+        response["message"] = result.getErrorMessage().toStdString(); // Error details
     }
 
     return response;
 }
 
-// Method to set output device
 json AudioEngine::setOutputDevice(const std::string& deviceName)
 {
     json response;
-
     juce::AudioDeviceManager::AudioDeviceSetup setup;
     deviceManager.getAudioDeviceSetup(setup);
 
     setup.outputDeviceName = deviceName;
+    auto result = deviceManager.setAudioDeviceSetup(setup, true);
 
-    bool setupSuccess = deviceManager.setAudioDeviceSetup(setup, true);
-
-    if (setupSuccess) // Check if setup was successful
+    if (result.wasOk()) // Check if the setup succeeded
     {
         response["status"] = "success";
         response["message"] = "Output device set successfully";
@@ -87,7 +82,7 @@ json AudioEngine::setOutputDevice(const std::string& deviceName)
     else
     {
         response["status"] = "error";
-        response["message"] = "Failed to set output device"; // Generic error message
+        response["message"] = result.getErrorMessage().toStdString(); // Error details
     }
 
     return response;
