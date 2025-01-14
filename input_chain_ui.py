@@ -3,8 +3,8 @@ from PyQt5.QtWidgets import (
     QLabel, QWidget, QInputDialog, QMessageBox, QStatusBar
 )
 from PyQt5.QtCore import Qt
-import json
 import zmq
+import json
 
 class ZeroMQClient:
     """Handles communication with the JUCE backend via ZeroMQ."""
@@ -23,6 +23,7 @@ class ZeroMQClient:
         except Exception as e:
             print("Error communicating with JUCE:", e)
             return {"status": "error", "message": str(e)}
+
 
 class MainUI(QMainWindow):
     """Main application window."""
@@ -86,6 +87,7 @@ class MainUI(QMainWindow):
             command = {"action": "set_output", "device_name": output_device}
             reply = self.client.send_command(command)
             self.status_bar.showMessage(reply.get("message", "Unknown error"))
+
 
 if __name__ == "__main__":
     app = QApplication([])
