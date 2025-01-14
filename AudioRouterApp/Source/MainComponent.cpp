@@ -1,31 +1,86 @@
-#pragma once
+#include "MainComponent.h"
 
-#include <JuceHeader.h>
-#include "AudioEngine.h"
-
-class MainComponent : public juce::Component
+MainComponent::MainComponent(AudioEngine& engine)
+    : audioEngine(engine)
 {
-public:
-    MainComponent(AudioEngine& engine);
-    ~MainComponent() override;
+    // Add and configure buttons
+    addAndMakeVisible(loadPluginButton);
+    loadPluginButton.onClick = [this]() { loadPlugin(); };
 
-    void paint(juce::Graphics&) override;
-    void resized() override;
+    addAndMakeVisible(savePresetButton);
+    savePresetButton.onClick = [this]() { savePreset(); };
 
-private:
-    void populateDropdowns();
-    void handleInputSelection();
-    void handleOutputSelection();
-    void browseForPlugin();
-    void savePreset();
-    void loadPreset();
+    addAndMakeVisible(loadPresetButton);
+    loadPresetButton.onClick = [this]() { loadPreset(); };
 
-    AudioEngine& audioEngine;
-    juce::ComboBox inputDropdown, outputDropdown;
-    juce::TextButton selectPluginButton{"Select Plugin"};
-    juce::TextButton savePresetButton{"Save Preset"};
-    juce::TextButton loadPresetButton{"Load Preset"};
-    juce::Label statusLabel;
+    setSize(600, 400);
+}
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
-};
+MainComponent::~MainComponent() {}
+
+void MainComponent::paint(juce::Graphics& g)
+{
+    g.fillAll(juce::Colours::darkgrey);
+    g.setColour(juce::Colours::white);
+    g.setFont(20.0f);
+    g.drawText("Audio Router App", getLocalBounds(), juce::Justification::centred, true);
+}
+
+void MainComponent::resized()
+{
+    // Layout buttons
+    auto area = getLocalBounds().reduced(10);
+    auto buttonHeight = 40;
+
+    loadPluginButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
+    savePresetButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
+    loadPresetButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
+}
+
+void MainComponent::loadPlugin()
+{
+    juce::FileChooser chooser("Select a plugin to load...", {}, "*.vst3;*.vst;*.component");
+    if (chooser.browseForFileToOpen())
+    {
+        auto file = chooser.getResult();
+        auto result = audioEngine.loadPlugin(file);
+        if (!result)
+        {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                                   "Error",
+                                                   "Failed to load plugin.");
+        }
+    }
+}
+
+void MainComponent::savePreset()
+{
+    juce::FileChooser chooser("Save preset file...", {}, "*.preset");
+    if (chooser.browseForFileToSave(true))
+    {
+        auto file = chooser.getResult();
+        auto result = audioEngine.savePreset(file);
+        if (!result)
+        {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                                   "Error",
+                                                   "Failed to save preset.");
+        }
+    }
+}
+
+void MainComponent::loadPreset()
+{
+    juce::FileChooser chooser("Select a preset file to load...", {}, "*.preset");
+    if (chooser.browseForFileToOpen())
+    {
+        auto file = chooser.getResult();
+        auto result = audioEngine.loadPreset(file);
+        if (!result)
+        {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                                   "Error",
+                                                   "Failed to load preset.");
+        }
+    }
+}
