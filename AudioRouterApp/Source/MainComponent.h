@@ -1,21 +1,23 @@
 #pragma once
 
-#include <juce_gui_basics/juce_gui_basics.h>
+#include <JuceHeader.h>
 #include "AudioEngine.h"
 
-class MainComponent : public juce::Component {
+class MainComponent : public juce::Component
+{
 public:
     MainComponent(AudioEngine& engine);
-    ~MainComponent() override = default;
+    ~MainComponent() override;
 
-    void paint(juce::Graphics& g) override;
+    void paint(juce::Graphics&) override;
     void resized() override;
 
 private:
     void populateDropdowns();
+    void handleInputSelection();  // Handles user selection of input devices
+    void handleOutputSelection(); // Handles user selection of output devices
 
     AudioEngine& audioEngine;
-
     juce::ComboBox inputDropdown;
     juce::ComboBox outputDropdown;
     juce::TextButton savePresetButton{"Save Preset"};
