@@ -1,70 +1,30 @@
 #include "ZeroMQServer.h"
-#include <iostream>
 
-// Constructor
-ZeroMQServer::ZeroMQServer(AudioEngine& engine) : context(1), socket(context, zmq::socket_type::rep), audioEngine(engine)
-{
-    try
-    {
-        socket.bind("tcp://*:5555");
-        std::cout << "ZeroMQ server started on port 5555" << std::endl;
-    }
-    catch (const zmq::error_t& e)
-    {
-        std::cerr << "ZeroMQ initialization error: " << e.what() << std::endl;
-        throw; // Rethrow the exception to handle it at a higher level
-    }
+ZeroMQServer::ZeroMQServer(AudioEngine& engine)
+    : audioEngine(engine), context(1), socket(context, zmq::socket_type::rep) {
+    socket.bind("tcp://*:5555");
 }
 
-// Destructor
-ZeroMQServer::~ZeroMQServer()
-{
-    try
-    {
-        socket.close();
-        context.close();
-    }
-    catch (const zmq::error_t& e)
-    {
-        std::cerr << "ZeroMQ cleanup error: " << e.what() << std::endl;
-    }
-}
+void ZeroMQServer::listen() {
+    while (true) {
+        zmq::message_t request;
+        socket.recv(request, zmq::recv_flags::none);
 
-// Main listener loop
-void ZeroMQServer::listen()
-{
-    zmq::pollitem_t items[] = { { static_cast<void*>(socket), 0, ZMQ_POLLIN, 0 } };
+        std::string msg(static_cast<char*>(request.data()), request.size());
+        json command = json::parse(msg);
+        json response;
 
-    while (true)
-    {
-        try
-        {
-            zmq::poll(&items[0], 1, std::chrono::milliseconds(10)); // Poll every 10 ms
-
-            if (items[0].revents & ZMQ_POLLIN)
-            {
-                zmq::message_t request;
-                auto recvResult = socket.recv(request, zmq::recv_flags::none);
-                if (!recvResult)
-                {
-                    std::cerr << "ZeroMQ receive error!" << std::endl;
-                    continue; // Retry instead of exiting
-                }
-
-                // Handle received message
-                std::string msg(static_cast<char*>(request.data()), request.size());
-                std::cerr << "Received command: " << msg << std::endl; // Debugging log
-                audioEngine.handleCommand(msg);
-
-                // Send reply
-                zmq::message_t reply(5);
-                memcpy(reply.data(), "Done", 5);
-                socket.send(reply, zmq::send_flags::none);
-            }
+        if (command["action"] == "get_device_list") {
+            response = audioEngine.getDeviceList();
+        } else if (command["action"] == "set_input") {
+            response = audioEngine.setInputDevice(command["device_name"]);
+        } else if (command["action"] == "set_output") {
+            response = audioEngine.setOutputDevice(command["device_name"]);
+        } else {
+            response = {{"status", "error"}, {"message", "Unknown command"}};
         }
-        catch (const zmq::error_t& e)
-        {
-            std::cerr << "ZeroMQ server error: " << e.what() << std::endl;
-        }
+
+        zmq::message_t reply(response.dump());
+        socket.send(reply, zmq::send_flags::none);
     }
 }

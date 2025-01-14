@@ -1,72 +1,59 @@
 #include "AudioEngine.h"
 #include <iostream>
-#include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
-
-// Constructor
-AudioEngine::AudioEngine() : currentInputId(0), currentOutputId(0)
-{
-    // Initialization code
+AudioEngine::AudioEngine() {
+    // Initialize default input and output devices (2 channels each)
+    deviceManager.initialiseWithDefaultDevices(2, 2);
 }
 
-// Destructor
-AudioEngine::~AudioEngine()
-{
-    // Cleanup code
-}
+json AudioEngine::getDeviceList() {
+    if (auto* currentDevice = deviceManager.getCurrentAudioDevice()) {
+        // Fetch input and output device names
+        auto inputDevices = currentDevice->getInputChannelNames();
+        auto outputDevices = currentDevice->getOutputChannelNames();
 
-// Set Input
-void AudioEngine::setInput(int inputId)
-{
-    currentInputId = inputId;
-    std::cout << "Input set to: " << currentInputId << std::endl;
+        // Convert juce::StringArray to std::vector<std::string>
+        std::vector<std::string> inputDeviceList;
+        std::vector<std::string> outputDeviceList;
 
-    // Add your input routing logic here
-}
-
-// Set Output
-void AudioEngine::setOutput(int outputId)
-{
-    currentOutputId = outputId;
-    std::cout << "Output set to: " << currentOutputId << std::endl;
-
-    // Add your output routing logic here
-}
-
-// Handle JSON Command
-void AudioEngine::handleCommand(const std::string& command)
-{
-    try
-    {
-        // Parse the JSON command
-        auto parsedCommand = json::parse(command);
-
-        if (!parsedCommand.contains("action"))
-        {
-            std::cerr << "Command missing 'action' key." << std::endl;
-            return;
+        for (const auto& device : inputDevices) {
+            inputDeviceList.push_back(device.toStdString());
         }
 
-        const auto action = parsedCommand["action"].get<std::string>();
+        for (const auto& device : outputDevices) {
+            outputDeviceList.push_back(device.toStdString());
+        }
 
-        if (action == "set_input" && parsedCommand.contains("input"))
-        {
-            int inputId = parsedCommand["input"].get<int>();
-            setInput(inputId);
-        }
-        else if (action == "set_output" && parsedCommand.contains("output"))
-        {
-            int outputId = parsedCommand["output"].get<int>();
-            setOutput(outputId);
-        }
-        else
-        {
-            std::cerr << "Unknown action or missing parameters in command." << std::endl;
+        return {
+            {"status", "success"},
+            {"inputs", inputDeviceList},
+            {"outputs", outputDeviceList}
+        };
+    }
+
+    return {{"status", "error"}, {"message", "No audio device found"}};
+}
+
+json AudioEngine::setInputDevice(const std::string& deviceName) {
+    if (auto* currentDevice = deviceManager.getCurrentAudioDevice()) {
+        // Check if the requested input device is available
+        if (currentDevice->getInputChannelNames().contains(juce::String(deviceName))) {
+            DBG("Input device set to: " << deviceName);
+            return {{"status", "success"}, {"message", "Input device set successfully"}};
         }
     }
-    catch (const json::exception& e)
-    {
-        std::cerr << "JSON parsing error: " << e.what() << std::endl;
+
+    return {{"status", "error"}, {"message", "Input device not found"}};
+}
+
+json AudioEngine::setOutputDevice(const std::string& deviceName) {
+    if (auto* currentDevice = deviceManager.getCurrentAudioDevice()) {
+        // Check if the requested output device is available
+        if (currentDevice->getOutputChannelNames().contains(juce::String(deviceName))) {
+            DBG("Output device set to: " << deviceName);
+            return {{"status", "success"}, {"message", "Output device set successfully"}};
+        }
     }
+
+    return {{"status", "error"}, {"message", "Output device not found"}};
 }

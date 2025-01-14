@@ -1,9 +1,11 @@
-#pragma once
+#ifndef MAINCOMPONENT_H
+#define MAINCOMPONENT_H
 
 #include <JuceHeader.h>
 #include "AudioEngine.h"
 
 class MainComponent : public juce::Component,
+                      public juce::Button::Listener,
                       public juce::ComboBox::Listener
 {
 public:
@@ -14,19 +16,24 @@ public:
     void resized() override;
 
 private:
-    // Reference to the AudioEngine
-    AudioEngine& audioEngine;
+    AudioEngine& audioEngine; // Reference to the audio engine
 
-    // GUI Components
+    juce::Label inputLabel{"InputLabel", "Input Device:"};
     juce::ComboBox inputDropdown;
+
+    juce::Label outputLabel{"OutputLabel", "Output Device:"};
     juce::ComboBox outputDropdown;
-    juce::Label statusLabel{"Status", "Ready"};
 
-    // Helper Methods
-    void populateDropdowns();
+    juce::TextButton refreshButton{"Refresh Devices"};
+    juce::Label statusLabel{"StatusLabel", "Ready"};
 
-    // Listeners
+    void populateDeviceDropdowns();
+    void refreshDeviceList();
+
+    void buttonClicked(juce::Button* button) override;
     void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
+
+#endif // MAINCOMPONENT_H
