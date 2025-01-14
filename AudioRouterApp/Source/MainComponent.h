@@ -1,30 +1,35 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "AudioEngine.h"
 
+/**
+ * MainComponent handles the user interface and interaction logic for the application.
+ */
 class MainComponent : public juce::Component
 {
 public:
-    explicit MainComponent(AudioEngine& audioEngine);
-    ~MainComponent() override;
+    MainComponent();
+    ~MainComponent() override = default;
 
-    void paint(juce::Graphics& g) override;
+    /** Handles component resizing. */
     void resized() override;
 
 private:
-    // Reference to the audio engine
-    AudioEngine& audioEngine;
+    juce::TextButton loadPluginButton{ "Load Plugin" };
+    juce::TextButton savePresetButton{ "Save Preset" };
+    juce::TextButton loadPresetButton{ "Load Preset" };
 
-    // GUI elements
-    juce::TextButton loadPluginButton { "Load Plugin" };
-    juce::TextButton savePresetButton { "Save Preset" };
-    juce::TextButton loadPresetButton { "Load Preset" };
+    AudioEngine audioEngine;
 
-    // Button click handlers
-    void loadPlugin();
-    void savePreset();
-    void loadPreset();
+    /** Callback for loading a plugin. */
+    void onLoadPlugin();
+
+    /** Callback for saving a preset. */
+    void onSavePreset();
+
+    /** Callback for loading a preset. */
+    void onLoadPreset();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

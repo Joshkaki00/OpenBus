@@ -1,26 +1,31 @@
-#ifndef AUDIO_ENGINE_H
-#define AUDIO_ENGINE_H
+#pragma once
 
-#include <juce_audio_devices/juce_audio_devices.h>
-#include <nlohmann/json.hpp>
+#include <juce_audio_processors/juce_audio_processors.h>
 
-using json = nlohmann::json;
-
+/**
+ * AudioEngine handles audio-related functionalities, including loading plugins
+ * and saving/loading presets.
+ */
 class AudioEngine
 {
 public:
     AudioEngine() = default;
-    ~AudioEngine() = default;
 
-    // Method to fetch available audio devices
-    json getDeviceList();
+    /** Loads a plugin from the specified file.
+        @param file The file to load the plugin from.
+        @return True if the plugin was loaded successfully, false otherwise.
+    */
+    bool loadPlugin(const juce::File& file);
 
-    // Methods to set input and output devices
-    json setInputDevice(const std::string& deviceName);
-    json setOutputDevice(const std::string& deviceName);
+    /** Saves a preset to the specified file.
+        @param file The file to save the preset to.
+        @return True if the preset was saved successfully, false otherwise.
+    */
+    bool savePreset(const juce::File& file);
 
-private:
-    juce::AudioDeviceManager deviceManager;
+    /** Loads a preset from the specified file.
+        @param file The file to load the preset from.
+        @return True if the preset was loaded successfully, false otherwise.
+    */
+    bool loadPreset(const juce::File& file);
 };
-
-#endif // AUDIO_ENGINE_H
