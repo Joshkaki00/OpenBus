@@ -1,52 +1,102 @@
 #include "AudioEngine.h"
+#include <fstream>
 
 AudioEngine::AudioEngine()
 {
-    deviceManager.initialiseWithDefaultDevices(2, 2); // Initialize with 2 input/output channels
+    deviceManager.initialiseWithDefaultDevices(2, 2); // Initialize input/output devices
 }
 
-AudioEngine::~AudioEngine()
+AudioEngine::~AudioEngine() {}
+
+void AudioEngine::savePreset(const std::string& presetName)
 {
-    deviceManager.closeAudioDevice();
+    nlohmann::json preset;
+
+    // Save device settings
+    if (auto* currentDevice = deviceManager.getCurrentAudioDevice())
+    {
+        preset["inputDevice"] = currentDevice->getInputChannelNames().joinIntoString(", ").toStdString();
+        preset["outputDevice"] = currentDevice->getOutputChannelNames().joinIntoString(", ").toStdString();
+    }
+
+    // Save preset to file
+    std::ofstream file(presetName + ".json");
+    if (file.is_open())
+    {
+        file << preset.dump(4);
+        file.close();
+    }
 }
 
-json AudioEngine::getDeviceList()
+void AudioEngine::loadPreset(const std::string& presetName)
 {
-    auto* currentDevice = deviceManager.getCurrentAudioDevice();
-    if (currentDevice)
+    std::ifstream file(presetName + ".json");
+    if (!file.is_open())
+        return;
+
+    nlohmann::json preset;
+    file >> preset;
+    file.close();
+
+    // Load device settings
+    auto inputDevice = preset.value("inputDevice", "");
+    auto outputDevice = preset.value("outputDevice", "");
+
+    if (auto* currentDevice = deviceManager.getCurrentAudioDevice())
+    {
+        if (currentDevice->getInputChannelNames().contains(inputDevice))
+        {
+            setInputDevice(inputDevice);
+        }
+
+        if (currentDevice->getOutputChannelNames().contains(outputDevice))
+        {
+            setOutputDevice(outputDevice);
+        }
+    }
+}
+
+nlohmann::json AudioEngine::getDeviceList()
+{
+    nlohmann::json deviceList;
+
+    if (auto* currentDevice = deviceManager.getCurrentAudioDevice())
     {
         auto inputDevices = currentDevice->getInputChannelNames();
         auto outputDevices = currentDevice->getOutputChannelNames();
 
-        std::vector<std::string> inputs(inputDevices.begin(), inputDevices.end());
-        std::vector<std::string> outputs(outputDevices.begin(), outputDevices.end());
+        for (auto& input : inputDevices)
+        {
+            deviceList["inputs"].push_back(input.toStdString());
+        }
 
-        return {{"status", "success"}, {"inputs", inputs}, {"outputs", outputs}};
+        for (auto& output : outputDevices)
+        {
+            deviceList["outputs"].push_back(output.toStdString());
+        }
     }
 
-    return {{"status", "error"}, {"message", "No audio device found"}};
+    return deviceList;
 }
 
-json AudioEngine::setInputDevice(const std::string& deviceName)
+void AudioEngine::setInputDevice(const std::string& deviceName)
 {
-    auto* currentDevice = deviceManager.getCurrentAudioDevice();
-    if (currentDevice && currentDevice->getInputChannelNames().contains(deviceName))
+    if (auto* currentDevice = deviceManager.getCurrentAudioDevice())
     {
-        DBG("Input device set to: " << deviceName);
-        return {{"status", "success"}, {"message", "Input device set successfully"}};
+        if (currentDevice->getInputChannelNames().contains(deviceName))
+        {
+            DBG("Input device set to: " << deviceName);
+        }
     }
-
-    return {{"status", "error"}, {"message", "Input device not found"}};
 }
 
-json AudioEngine::setOutputDevice(const std::string& deviceName)
+void AudioEngine::setOutputDevice(const std::string& deviceName)
 {
-    auto* currentDevice = deviceManager.getCurrentAudioDevice();
-    if (currentDevice && currentDevice->getOutputChannelNames().contains(deviceName))
+    if (auto* currentDevice = deviceManager.getCurrentAudioDevice())
     {
-        DBG("Output device set to: " << deviceName);
-        return {{"status", "success"}, {"message", "Output device set successfully"}};
+        if (currentDevice->getOutputChannelNames().contains(deviceName))
+        {
+            DBG("Output device set to: " << deviceName);
+        }
     }
-
-    return {{"status", "error"}, {"message", "Output device not found"}};
 }
