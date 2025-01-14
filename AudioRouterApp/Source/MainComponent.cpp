@@ -1,7 +1,6 @@
 #include "MainComponent.h"
 
-MainComponent::MainComponent(AudioEngine& engine)
-    : audioEngine(engine)
+MainComponent::MainComponent(AudioEngine& engine) : audioEngine(engine)
 {
     addAndMakeVisible(inputDropdown);
     addAndMakeVisible(outputDropdown);
@@ -11,13 +10,13 @@ MainComponent::MainComponent(AudioEngine& engine)
 
     inputDropdown.onChange = [this] { handleInputSelection(); };
     outputDropdown.onChange = [this] { handleOutputSelection(); };
-    savePresetButton.onClick = [this]
-    {
+
+    savePresetButton.onClick = [this] {
         auto response = audioEngine.savePreset("DefaultPreset");
         statusLabel.setText(juce::String(response.dump()), juce::dontSendNotification);
     };
-    loadPresetButton.onClick = [this]
-    {
+
+    loadPresetButton.onClick = [this] {
         auto response = audioEngine.loadPreset("DefaultPreset");
         statusLabel.setText(juce::String(response.dump()), juce::dontSendNotification);
     };
@@ -35,10 +34,10 @@ void MainComponent::populateDropdowns()
         outputDropdown.clear();
 
         for (const auto& input : deviceList["inputs"])
-            inputDropdown.addItem(juce::String(input), inputDropdown.getNumItems() + 1);
+            inputDropdown.addItem(juce::String(input.get<std::string>()), inputDropdown.getNumItems() + 1);
 
         for (const auto& output : deviceList["outputs"])
-            outputDropdown.addItem(juce::String(output), outputDropdown.getNumItems() + 1);
+            outputDropdown.addItem(juce::String(output.get<std::string>()), outputDropdown.getNumItems() + 1);
     }
     else
     {
