@@ -54,7 +54,13 @@ void ZeroMQServer::listen()
         // Receive message
         try
         {
-            socket.recv(request, zmq::recv_flags::none);
+            bool received = socket.recv(request, zmq::recv_flags::none); // Store the return value
+
+            if (!received)
+            {
+                std::cerr << "ZeroMQ receive failed: No message received" << std::endl;
+                continue; // Skip to the next iteration if receiving failed
+            }
         }
         catch (const zmq::error_t& e)
         {
