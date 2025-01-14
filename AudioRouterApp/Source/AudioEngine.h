@@ -1,31 +1,30 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <nlohmann/json.hpp> // For JSON handling
 
 /**
- * AudioEngine handles audio-related functionalities, including loading plugins
- * and saving/loading presets.
+ * AudioEngine handles audio-related functionalities, including managing devices.
  */
 class AudioEngine
 {
 public:
     AudioEngine() = default;
 
-    /** Loads a plugin from the specified file.
-        @param file The file to load the plugin from.
-        @return True if the plugin was loaded successfully, false otherwise.
+    /** Retrieves the list of available input and output devices.
+        @return A JSON object containing device lists.
     */
-    bool loadPlugin(const juce::File& file);
+    nlohmann::json getDeviceList();
 
-    /** Saves a preset to the specified file.
-        @param file The file to save the preset to.
-        @return True if the preset was saved successfully, false otherwise.
+    /** Sets the input device by name.
+        @param deviceName The name of the input device.
+        @return A JSON object indicating success or failure.
     */
-    bool savePreset(const juce::File& file);
+    nlohmann::json setInputDevice(const std::string& deviceName);
 
-    /** Loads a preset from the specified file.
-        @param file The file to load the preset from.
-        @return True if the preset was loaded successfully, false otherwise.
+    /** Sets the output device by name.
+        @param deviceName The name of the output device.
+        @return A JSON object indicating success or failure.
     */
-    bool loadPreset(const juce::File& file);
+    nlohmann::json setOutputDevice(const std::string& deviceName);
 };
