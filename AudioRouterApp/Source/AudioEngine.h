@@ -2,8 +2,7 @@
 
 #include <JuceHeader.h>
 #include <vector>
-#include <memory>
-#include <nlohmann/json.hpp> // Ensure the correct inclusion of nlohmann/json
+#include <nlohmann/json.hpp>
 
 class AudioEngine
 {
@@ -24,9 +23,6 @@ private:
     juce::AudioDeviceManager deviceManager;
     juce::AudioProcessorGraph graph;
     juce::AudioProcessorGraph::Node::Ptr currentNode;
-
-    // Use std::vector with smart pointers for device management
-    std::vector<std::unique_ptr<juce::AudioIODeviceType>> deviceTypes;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioEngine)
 };

@@ -3,7 +3,6 @@
 AudioEngine::AudioEngine()
 {
     deviceManager.initialiseWithDefaultDevices(2, 2); // Example: 2 input, 2 output
-    deviceTypes = deviceManager.createAudioDeviceTypes(); // Populate device types
 }
 
 AudioEngine::~AudioEngine() = default;
@@ -31,7 +30,8 @@ nlohmann::json AudioEngine::getDeviceList()
     nlohmann::json devices;
     nlohmann::json inputs, outputs;
 
-    for (auto& type : deviceTypes)
+    auto deviceTypes = deviceManager.getAvailableDeviceTypes();
+    for (const auto& type : *deviceTypes)
     {
         type->scanForDevices();
         auto inputNames = type->getDeviceNames(true);
@@ -46,14 +46,19 @@ nlohmann::json AudioEngine::getDeviceList()
 
     devices["inputs"] = inputs;
     devices["outputs"] = outputs;
+
     return devices;
 }
 
 nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
 {
     nlohmann::json response;
+    juce::AudioDeviceManager::AudioDeviceSetup setup;
+    deviceManager.getAudioDeviceSetup(setup);
 
-    auto result = deviceManager.setAudioDeviceSetup(deviceManager.getAudioDeviceSetup(), true);
+    setup.inputDeviceName = deviceName;
+    auto result = deviceManager.setAudioDeviceSetup(setup, true);
+
     if (result.failed())
     {
         response["status"] = "error";
@@ -64,14 +69,19 @@ nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
         response["status"] = "success";
         response["message"] = "Input device set successfully";
     }
+
     return response;
 }
 
 nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
 {
     nlohmann::json response;
+    juce::AudioDeviceManager::AudioDeviceSetup setup;
+    deviceManager.getAudioDeviceSetup(setup);
 
-    auto result = deviceManager.setAudioDeviceSetup(deviceManager.getAudioDeviceSetup(), true);
+    setup.outputDeviceName = deviceName;
+    auto result = deviceManager.setAudioDeviceSetup(setup, true);
+
     if (result.failed())
     {
         response["status"] = "error";
@@ -82,5 +92,6 @@ nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
         response["status"] = "success";
         response["message"] = "Output device set successfully";
     }
+
     return response;
 }
