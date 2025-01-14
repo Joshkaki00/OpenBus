@@ -63,14 +63,14 @@ nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
 
     // Set the input device name
     setup.inputDeviceName = deviceName;
-    auto result = deviceManager.setAudioDeviceSetup(setup, true);
+    juce::Result result = deviceManager.setAudioDeviceSetup(setup, true);
 
-    if (result == juce::Result::ok())
+    if (result.wasOk()) // Correct use of wasOk() to check success
     {
         response["status"] = "success";
         response["message"] = "Input device set successfully";
     }
-    else
+    else // Retrieve error message in case of failure
     {
         response["status"] = "error";
         response["message"] = result.getErrorMessage().toStdString();
@@ -87,9 +87,9 @@ nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
 
     // Set the output device name
     setup.outputDeviceName = deviceName;
-    auto result = deviceManager.setAudioDeviceSetup(setup, true);
+    juce::Result result = deviceManager.setAudioDeviceSetup(setup, true);
 
-    if (result == juce::Result::ok())
+    if (result.wasOk()) // Correct use of wasOk()
     {
         response["status"] = "success";
         response["message"] = "Output device set successfully";
