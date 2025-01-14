@@ -51,11 +51,13 @@ void MainComponent::populateDropdowns() {
     auto outputs = devices["outputs"];
 
     for (const auto& input : inputs) {
-        inputDropdown.addItem(input, inputDropdown.getNumItems() + 1);
+        juce::String inputName = juce::String(input.get<std::string>()); // Convert to std::string and then to juce::String
+        inputDropdown.addItem(inputName, inputDropdown.getNumItems() + 1);
     }
 
     for (const auto& output : outputs) {
-        outputDropdown.addItem(output, outputDropdown.getNumItems() + 1);
+        juce::String outputName = juce::String(output.get<std::string>()); // Convert to std::string and then to juce::String
+        outputDropdown.addItem(outputName, outputDropdown.getNumItems() + 1);
     }
 
     inputDropdown.setSelectedId(1);
