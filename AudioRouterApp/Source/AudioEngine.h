@@ -1,24 +1,20 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <nlohmann/json.hpp>
-#include <fstream>
-#include <vector>
-#include <string>
-
-using json = nlohmann::json;
 
 class AudioEngine
 {
 public:
     AudioEngine();
+    ~AudioEngine();
 
-    json getDeviceList();
-    json setInputDevice(const std::string& deviceName);
-    json setOutputDevice(const std::string& deviceName);
-    json savePreset(const std::string& presetName);
-    json loadPreset(const std::string& presetName);
+    bool loadPlugin(const juce::File& file);
+    bool savePreset(const juce::File& file);
+    bool loadPreset(const juce::File& file);
 
 private:
-    juce::AudioDeviceManager deviceManager;
+    juce::AudioProcessorGraph graph;
+    juce::AudioProcessorGraph::Node::Ptr currentNode;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioEngine)
 };
