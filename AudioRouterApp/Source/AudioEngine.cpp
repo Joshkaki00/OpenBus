@@ -1,78 +1,171 @@
 #include "AudioEngine.h"
-#include <iostream>
+#include <iostream> // For logging
 
-AudioEngine::AudioEngine() {
+// Constructor
+AudioEngine::AudioEngine()
+{
     initializeFormats();
     setupGraph();
 }
 
-void AudioEngine::setupGraph() {
-    try {
-        for (int i = 0; i < maxInputs; ++i) {
-            inputNode[i] = addNode(createIOProcessor(true)).get();
-            outputNode[i] = addNode(createIOProcessor(false)).get();
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "Graph setup failed: " << e.what() << std::endl;
+// Setup Audio Graph
+void AudioEngine::setupGraph()
+{
+    for (int i = 0; i < maxInputs; ++i)
+    {
+        inputNode[i] = addNode(createIOProcessor(true)).get();
+        outputNode[i] = addNode(createIOProcessor(false)).get();
     }
 }
 
-void AudioEngine::handleCommand(const std::string& msg) {
-    try {
+// Handle JSON Commands
+void AudioEngine::handleCommand(const std::string& msg)
+{
+    try
+    {
         auto command = json::parse(msg);
-        if (!command.contains("action")) throw std::runtime_error("Missing 'action' key");
+
+        if (!command.contains("action"))
+        {
+            std::cerr << "Command missing 'action' key." << std::endl;
+            return;
+        }
 
         const auto action = command["action"].get<std::string>();
-        if (action == "add_plugin" && command.contains("path") && command.contains("input")) {
-            addPlugin(juce::String(command["path"].get<std::string>()), command["input"].get<int>());
-        } else {
-            std::cerr << "Unknown or incomplete command: " << action << std::endl;
+
+        if (action == "add_plugin")
+        {
+            if (command.contains("path") && command.contains("input"))
+            {
+                std::string pluginName = command["path"].get<std::string>();
+                int input = command["input"].get<int>();
+
+                addPlugin(juce::String(pluginName), input);
+            }
+            else
+            {
+                std::cerr << "Missing 'path' or 'input' for add_plugin command." << std::endl;
+            }
         }
-    } catch (const json::exception& e) {
+        else
+        {
+            std::cerr << "Unknown action specified: " << action << std::endl;
+        }
+    }
+    catch (const json::exception& e)
+    {
         std::cerr << "JSON parsing error: " << e.what() << std::endl;
     }
 }
 
-void AudioEngine::initializeFormats() {
-    if (formatManager.getNumFormats() == 0) formatManager.addDefaultFormats();
+// Initialize plugin formats
+void AudioEngine::initializeFormats()
+{
+    if (formatManager.getNumFormats() == 0)
+    {
+        formatManager.addDefaultFormats();
+    }
 }
 
-std::unique_ptr<juce::AudioProcessor> AudioEngine::loadPlugin(const juce::String& path) {
+// Load Plugin
+std::unique_ptr<juce::AudioProcessor> AudioEngine::loadPlugin(const juce::String& path)
+{
     initializeFormats();
-    juce::File pluginFile(path);
-    if (!pluginFile.existsAsFile()) throw std::runtime_error("Plugin file not found");
-
-    juce::OwnedArray<juce::PluginDescription> results;
-    formatManager.getFormat(0)->findAllTypesForFile(results, pluginFile.getFullPathName());
-    if (results.isEmpty()) throw std::runtime_error("No matching plugins found");
 
     juce::String errorMessage;
-    return formatManager.createPluginInstance(*results[0], 44100.0, 512, errorMessage);
+    juce::File pluginFile(path);
+
+    if (!pluginFile.existsAsFile())
+    {
+        std::cerr << "Invalid plugin path: " << path << std::endl;
+        return nullptr;
+    }
+
+    juce::PluginDescription desc;
+    juce::AudioPluginFormat* format = formatManager.getFormat(0);
+    juce::OwnedArray<juce::PluginDescription> results;
+
+    format->findAllTypesForFile(results, pluginFile.getFullPathName());
+
+    if (results.isEmpty())
+    {
+        std::cerr << "No matching plugins found for: " << path << std::endl;
+        return nullptr;
+    }
+
+    auto plugin = formatManager.createPluginInstance(*results[0], 44100.0, 512, errorMessage);
+
+    if (!plugin)
+    {
+        std::cerr << "Failed to load plugin: " << errorMessage.toStdString() << std::endl;
+        return nullptr;
+    }
+
+    std::cerr << "Plugin loaded successfully: " << results[0]->name.toStdString() << std::endl;
+    return plugin;
 }
 
-void AudioEngine::addPlugin(const juce::String& path, int inputIndex) {
-    if (inputIndex < 0 || inputIndex >= maxInputs) throw std::out_of_range("Invalid input index");
+// Add Plugin
+void AudioEngine::addPlugin(const juce::String& path, int inputIndex)
+{
+    if (inputIndex < 0 || inputIndex >= maxInputs)
+    {
+        std::cerr << "Invalid input index specified." << std::endl;
+        return;
+    }
 
     auto plugin = loadPlugin(path);
-    auto node = addNode(std::move(plugin));
-    addConnection({ { inputNode[inputIndex]->nodeID, 0 }, { node->nodeID, 0 } });
-    addConnection({ { node->nodeID, 0 }, { outputNode[inputIndex]->nodeID, 0 } });
 
-    std::cerr << "Plugin added to input " << inputIndex << std::endl;
+    if (plugin)
+    {
+        auto node = addNode(std::move(plugin));
+
+        for (int ch = 0; ch < maxInputs; ++ch)
+        {
+            if (inputNode[ch] && outputNode[ch])
+            {
+                addConnection({ { inputNode[ch]->nodeID, 0 }, { node->nodeID, 0 } });
+                addConnection({ { node->nodeID, 0 }, { outputNode[ch]->nodeID, 0 } });
+            }
+        }
+
+        std::cerr << "Plugin added successfully to input: " << inputIndex << std::endl;
+    }
+    else
+    {
+        std::cerr << "Failed to add plugin at path: " << path << std::endl;
+    }
 }
 
-std::unique_ptr<juce::AudioProcessor> AudioEngine::createIOProcessor(bool isInput) {
+// Create IO Processor
+std::unique_ptr<juce::AudioProcessor> AudioEngine::createIOProcessor(bool isInput)
+{
     return std::make_unique<juce::AudioProcessorGraph::AudioGraphIOProcessor>(
         isInput ? juce::AudioProcessorGraph::AudioGraphIOProcessor::audioInputNode
-                : juce::AudioProcessorGraph::AudioGraphIOProcessor::audioOutputNode);
+                : juce::AudioProcessorGraph::AudioGraphIOProcessor::audioOutputNode
+    );
 }
 
-void AudioEngine::setupVirtualOutput(const juce::String& outputName) {
+// Setup Virtual Output
+void AudioEngine::setupVirtualOutput(const juce::String& outputName)
+{
     juce::AudioDeviceManager deviceManager;
+
     auto* currentDevice = deviceManager.getCurrentAudioDevice();
-    if (currentDevice && currentDevice->getOutputChannelNames().contains(outputName)) {
-        std::cerr << "Virtual output set to: " << outputName << std::endl;
-    } else {
-        std::cerr << "Output not found!" << std::endl;
+    if (currentDevice != nullptr)
+    {
+        juce::StringArray outputs = currentDevice->getOutputChannelNames();
+        if (outputs.contains(outputName))
+        {
+            std::cerr << "Output set to: " << outputName << std::endl;
+        }
+        else
+        {
+            std::cerr << "Output not found!" << std::endl;
+        }
+    }
+    else
+    {
+        std::cerr << "No audio device available!" << std::endl;
     }
 }

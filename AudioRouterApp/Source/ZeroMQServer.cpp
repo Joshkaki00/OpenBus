@@ -3,13 +3,13 @@
 
 // Constructor
 ZeroMQServer::ZeroMQServer(AudioEngine& engine)
-    : audioEngine(engine), // Ensure the initialization order matches declaration order
-      context(1),          // Initialize the context first
-      socket(context, zmq::socket_type::rep) // Initialize the socket after the context
+    : context(1),                         // Initialize the context with one I/O thread
+      socket(context, zmq::socket_type::rep), // Initialize the socket after the context
+      audioEngine(engine)                 // Initialize the audio engine last
 {
     try
     {
-        socket.bind("tcp://*:5555"); // Bind the socket to TCP port 5555
+        socket.bind("tcp://*:5555");      // Bind the socket to TCP port 5555
         std::cout << "ZeroMQ server started on port 5555" << std::endl;
     }
     catch (const zmq::error_t& e)
