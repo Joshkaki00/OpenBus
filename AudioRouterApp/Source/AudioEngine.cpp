@@ -5,12 +5,12 @@ json AudioEngine::getDeviceList()
     json devices;
     json inputs, outputs;
 
-    // Ensure compatibility with const OwnedArray
-    const auto& deviceTypes = deviceManager.getAvailableDeviceTypes();
+    // Retrieve available device types
+    auto& deviceTypes = deviceManager.getAvailableDeviceTypes(); // Remove const
 
-    for (const auto* type : deviceTypes) // Access each AudioIODeviceType
+    for (auto* type : deviceTypes) // Access each AudioIODeviceType
     {
-        type->scanForDevices(); // Adjust if const qualifier is required
+        type->scanForDevices(); // No const issues
 
         auto inputNames = type->getDeviceNames(true);  // True for input devices
         auto outputNames = type->getDeviceNames(false); // False for output devices
