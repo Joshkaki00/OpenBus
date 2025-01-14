@@ -1,10 +1,6 @@
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QVBoxLayout, QPushButton,
-    QLabel, QWidget, QInputDialog, QMessageBox, QStatusBar
-)
-from PyQt5.QtCore import Qt
-import zmq
+import pygame
 import json
+import zmq
 
 class ZeroMQClient:
     """Handles communication with the JUCE backend via ZeroMQ."""
@@ -25,72 +21,90 @@ class ZeroMQClient:
             return {"status": "error", "message": str(e)}
 
 
-class MainUI(QMainWindow):
-    """Main application window."""
+class AudioRouterApp:
+    """Main application logic."""
     def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Audio Mixer - Device Management")
-        self.setGeometry(100, 100, 600, 400)
-
+        pygame.init()
+        self.screen = pygame.display.set_mode((600, 400))
+        pygame.display.set_caption("Audio Mixer - Device Management")
+        self.font = pygame.font.Font(None, 36)
+        self.running = True
         self.client = ZeroMQClient()
-        self.layout = QVBoxLayout()
-        self.status_bar = QStatusBar()
-        self.setStatusBar(self.status_bar)
+        self.inputs = []
+        self.outputs = []
+        self.selected_input = None
+        self.selected_output = None
+        self.presets = {}
 
-        # Fetch devices
-        self.devices = self.fetch_device_list()
-        self.inputs = self.devices.get("inputs", [])
-        self.outputs = self.devices.get("outputs", [])
-
-        # Dropdowns for input and output
-        self.input_label = QLabel("Input Device")
-        self.input_dropdown = QPushButton("Select Input")
-        self.input_dropdown.clicked.connect(self.select_input)
-        self.layout.addWidget(self.input_label)
-        self.layout.addWidget(self.input_dropdown)
-
-        self.output_label = QLabel("Output Device")
-        self.output_dropdown = QPushButton("Select Output")
-        self.output_dropdown.clicked.connect(self.select_output)
-        self.layout.addWidget(self.output_label)
-        self.layout.addWidget(self.output_dropdown)
-
-        # Container widget
-        container = QWidget()
-        container.setLayout(self.layout)
-        self.setCentralWidget(container)
+        # Load devices
+        self.fetch_device_list()
 
     def fetch_device_list(self):
         """Fetch available input and output devices from JUCE backend."""
         command = {"action": "get_device_list"}
         reply = self.client.send_command(command)
-        return reply
+        self.inputs = reply.get("inputs", [])
+        self.outputs = reply.get("outputs", [])
 
-    def select_input(self):
-        """Select input device."""
-        if not self.inputs:
-            QMessageBox.warning(self, "No Devices", "No input devices available.")
-            return
-        input_device, ok = QInputDialog.getItem(self, "Select Input", "Choose an Input Device:", self.inputs, 0, False)
-        if ok and input_device:
-            command = {"action": "set_input", "device_name": input_device}
-            reply = self.client.send_command(command)
-            self.status_bar.showMessage(reply.get("message", "Unknown error"))
+    def save_preset(self, filename):
+        """Save current selections as a preset."""
+        preset = {"input": self.selected_input, "output": self.selected_output}
+        with open(filename, 'w') as f:
+            json.dump(preset, f)
 
-    def select_output(self):
-        """Select output device."""
-        if not self.outputs:
-            QMessageBox.warning(self, "No Devices", "No output devices available.")
-            return
-        output_device, ok = QInputDialog.getItem(self, "Select Output", "Choose an Output Device:", self.outputs, 0, False)
-        if ok and output_device:
-            command = {"action": "set_output", "device_name": output_device}
-            reply = self.client.send_command(command)
-            self.status_bar.showMessage(reply.get("message", "Unknown error"))
+    def load_preset(self, filename):
+        """Load a preset and set devices."""
+        try:
+            with open(filename, 'r') as f:
+                preset = json.load(f)
+                self.selected_input = preset.get("input")
+                self.selected_output = preset.get("output")
+        except FileNotFoundError:
+            print("Preset file not found.")
+
+    def render_text(self, text, x, y):
+        """Render text on the screen."""
+        label = self.font.render(text, True, (255, 255, 255))
+        self.screen.blit(label, (x, y))
+
+    def handle_event(self, event):
+        """Handle user input."""
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1:
+                self.selected_input = self.inputs[0] if self.inputs else None
+            elif event.key == pygame.K_2:
+                self.selected_output = self.outputs[0] if self.outputs else None
+            elif event.key == pygame.K_s:
+                self.save_preset("preset.json")
+            elif event.key == pygame.K_l:
+                self.load_preset("preset.json")
+            elif event.key == pygame.K_ESCAPE:
+                self.running = False
+
+    def run(self):
+        """Main loop."""
+        while self.running:
+            self.screen.fill((0, 0, 0))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                self.handle_event(event)
+
+            # Display instructions and current state
+            self.render_text("Press 1 to Select Input", 20, 20)
+            self.render_text("Press 2 to Select Output", 20, 60)
+            self.render_text("Press S to Save Preset", 20, 100)
+            self.render_text("Press L to Load Preset", 20, 140)
+            self.render_text("Press ESC to Exit", 20, 180)
+
+            self.render_text(f"Selected Input: {self.selected_input}", 20, 220)
+            self.render_text(f"Selected Output: {self.selected_output}", 20, 260)
+
+            pygame.display.flip()
+
+        pygame.quit()
 
 
 if __name__ == "__main__":
-    app = QApplication([])
-    window = MainUI()
-    window.show()
-    app.exec_()
+    app = AudioRouterApp()
+    app.run()
