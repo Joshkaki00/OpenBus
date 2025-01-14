@@ -1,23 +1,23 @@
 #include "MainComponent.h"
 
-MainComponent::MainComponent(AudioEngine& engine)
-    : audioEngine(engine)
+// Constructor
+MainComponent::MainComponent()
 {
-    // Add and configure buttons
     addAndMakeVisible(loadPluginButton);
-    loadPluginButton.onClick = [this]() { loadPlugin(); };
-
     addAndMakeVisible(savePresetButton);
-    savePresetButton.onClick = [this]() { savePreset(); };
-
     addAndMakeVisible(loadPresetButton);
-    loadPresetButton.onClick = [this]() { loadPreset(); };
+
+    loadPluginButton.onClick = [this] { loadPlugin(); };
+    savePresetButton.onClick = [this] { savePreset(); };
+    loadPresetButton.onClick = [this] { loadPreset(); };
 
     setSize(600, 400);
 }
 
+// Destructor
 MainComponent::~MainComponent() {}
 
+// Paint method
 void MainComponent::paint(juce::Graphics& g)
 {
     g.fillAll(juce::Colours::darkgrey);
@@ -26,9 +26,9 @@ void MainComponent::paint(juce::Graphics& g)
     g.drawText("Audio Router App", getLocalBounds(), juce::Justification::centred, true);
 }
 
+// Resized method
 void MainComponent::resized()
 {
-    // Layout buttons
     auto area = getLocalBounds().reduced(10);
     auto buttonHeight = 40;
 
@@ -37,10 +37,10 @@ void MainComponent::resized()
     loadPresetButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
 }
 
+// Load plugin
 void MainComponent::loadPlugin()
 {
     juce::FileChooser chooser("Select a plugin to load...", {}, "*.vst3;*.vst;*.component");
-
     chooser.launchAsync(juce::FileBrowserComponent::openMode, [this](const juce::FileChooser& fc)
     {
         auto file = fc.getResult();
@@ -50,17 +50,16 @@ void MainComponent::loadPlugin()
             if (!result)
             {
                 juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                                       "Error",
-                                                       "Failed to load plugin.");
+                    "Error", "Failed to load plugin.");
             }
         }
     });
 }
 
+// Save preset
 void MainComponent::savePreset()
 {
     juce::FileChooser chooser("Save preset file...", {}, "*.preset");
-
     chooser.launchAsync(juce::FileBrowserComponent::saveMode, [this](const juce::FileChooser& fc)
     {
         auto file = fc.getResult();
@@ -70,17 +69,16 @@ void MainComponent::savePreset()
             if (!result)
             {
                 juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                                       "Error",
-                                                       "Failed to save preset.");
+                    "Error", "Failed to save preset.");
             }
         }
     });
 }
 
+// Load preset
 void MainComponent::loadPreset()
 {
     juce::FileChooser chooser("Select a preset file to load...", {}, "*.preset");
-
     chooser.launchAsync(juce::FileBrowserComponent::openMode, [this](const juce::FileChooser& fc)
     {
         auto file = fc.getResult();
@@ -90,8 +88,7 @@ void MainComponent::loadPreset()
             if (!result)
             {
                 juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                                       "Error",
-                                                       "Failed to load preset.");
+                    "Error", "Failed to load preset.");
             }
         }
     });
