@@ -65,8 +65,18 @@ json AudioEngine::savePreset(const std::string& presetName)
 
         if (auto* currentDevice = deviceManager.getCurrentAudioDevice())
         {
-            presetData["inputChannels"] = currentDevice->getInputChannelNames().toStdVector();
-            presetData["outputChannels"] = currentDevice->getOutputChannelNames().toStdVector();
+            std::vector<std::string> inputChannels;
+            std::vector<std::string> outputChannels;
+
+            // Convert JUCE::StringArray to std::vector<std::string>
+            for (const auto& input : currentDevice->getInputChannelNames())
+                inputChannels.push_back(input.toStdString());
+
+            for (const auto& output : currentDevice->getOutputChannelNames())
+                outputChannels.push_back(output.toStdString());
+
+            presetData["inputChannels"] = inputChannels;
+            presetData["outputChannels"] = outputChannels;
         }
 
         std::ofstream file(presetName + ".json");
