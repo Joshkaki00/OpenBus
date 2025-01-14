@@ -6,9 +6,9 @@ def test_server():
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
 
-    # Set a timeout for receiving messages (e.g., 5000ms or 5 seconds)
-    socket.RCVTIMEO = 5000  # Timeout in milliseconds
-    socket.SNDTIMEO = 5000  # Optional: Timeout for sending messages
+    # Set timeouts to avoid indefinite hanging
+    socket.RCVTIMEO = 5000  # 5 seconds
+    socket.SNDTIMEO = 5000  # 5 seconds
 
     # Connect to the server
     server_address = "tcp://localhost:5555"
@@ -29,12 +29,12 @@ def test_server():
             print(f"\nSending command: {json.dumps(command)}")
             socket.send_json(command)
 
-            # Receive the response (timeout applies here)
+            # Wait for the server's response
             reply = socket.recv_json()
             print(f"Received reply: {json.dumps(reply, indent=4)}")
 
-        except zmq.Again as e:
-            print(f"Timeout occurred: {e}")
+        except zmq.Again:
+            print("Timeout: No response from server.")
         except zmq.ZMQError as e:
             print(f"ZeroMQ error: {e}")
         except json.JSONDecodeError as e:
