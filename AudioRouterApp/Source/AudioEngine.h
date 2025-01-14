@@ -1,27 +1,20 @@
-#ifndef AUDIOENGINE_H
-#define AUDIOENGINE_H
+#pragma once
 
 #include <JuceHeader.h>
 #include <nlohmann/json.hpp>
-#include <string>
-#include <vector>
-
 using json = nlohmann::json;
 
 class AudioEngine {
 public:
     AudioEngine();
-    ~AudioEngine() = default;
+    ~AudioEngine();
 
-    // Fetch available input and output devices
     json getDeviceList();
-
-    // Set input and output devices by name
     json setInputDevice(const std::string& deviceName);
     json setOutputDevice(const std::string& deviceName);
+    json savePreset(const std::string& presetName);
+    json loadPreset(const std::string& presetName);
 
 private:
-    juce::AudioDeviceManager deviceManager; // JUCE's audio device manager
+    juce::AudioDeviceManager deviceManager;
 };
-
-#endif // AUDIOENGINE_H
