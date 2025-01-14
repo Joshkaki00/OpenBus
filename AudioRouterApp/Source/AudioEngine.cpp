@@ -2,66 +2,58 @@
 
 AudioEngine::AudioEngine()
 {
-    deviceManager.initialise(2, 2, nullptr, true); // Initialize device manager with 2 inputs and 2 outputs
+    deviceManager.initialiseWithDefaultDevices(2, 2); // Example: 2 input, 2 output
+    deviceTypes = deviceManager.createAudioDeviceTypes(); // Populate device types
 }
 
-AudioEngine::~AudioEngine()
-{
-    // Destructor to clean up resources if needed
-}
+AudioEngine::~AudioEngine() = default;
 
 bool AudioEngine::loadPlugin(const juce::File& file)
 {
-    // Add plugin loading implementation here
+    // Implement plugin loading logic here
     return true;
 }
 
 bool AudioEngine::savePreset(const juce::File& file)
 {
-    // Add preset saving logic here
+    // Implement preset saving logic here
     return true;
 }
 
 bool AudioEngine::loadPreset(const juce::File& file)
 {
-    // Add preset loading logic here
+    // Implement preset loading logic here
     return true;
 }
 
 nlohmann::json AudioEngine::getDeviceList()
 {
     nlohmann::json devices;
+    nlohmann::json inputs, outputs;
 
-    auto types = deviceManager.getAvailableDeviceTypes();
-    for (auto* type : types)
+    for (auto& type : deviceTypes)
     {
-        nlohmann::json inputs;
-        nlohmann::json outputs;
+        type->scanForDevices();
+        auto inputNames = type->getDeviceNames(true);
+        auto outputNames = type->getDeviceNames(false);
 
-        // Get input devices
-        for (auto& input : type->getDeviceNames())
-        {
+        for (const auto& input : inputNames)
             inputs.push_back(input.toStdString());
-        }
 
-        // Get output devices
-        for (auto& output : type->getDeviceNames())
-        {
+        for (const auto& output : outputNames)
             outputs.push_back(output.toStdString());
-        }
-
-        devices["inputs"] = inputs;
-        devices["outputs"] = outputs;
     }
 
+    devices["inputs"] = inputs;
+    devices["outputs"] = outputs;
     return devices;
 }
 
 nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
 {
-    auto result = deviceManager.setAudioDeviceSetup(deviceManager.getAudioDeviceSetup(), true);
-
     nlohmann::json response;
+
+    auto result = deviceManager.setAudioDeviceSetup(deviceManager.getAudioDeviceSetup(), true);
     if (result.failed())
     {
         response["status"] = "error";
@@ -77,9 +69,9 @@ nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
 
 nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
 {
-    auto result = deviceManager.setAudioDeviceSetup(deviceManager.getAudioDeviceSetup(), true);
-
     nlohmann::json response;
+
+    auto result = deviceManager.setAudioDeviceSetup(deviceManager.getAudioDeviceSetup(), true);
     if (result.failed())
     {
         response["status"] = "error";
