@@ -3,16 +3,21 @@
 #include <JuceHeader.h>
 #include "AudioEngine.h"
 
-class MainComponent : public juce::Component {
+class MainComponent : public juce::Component
+{
 public:
-    explicit MainComponent(AudioEngine& engine); // Constructor accepting AudioEngine reference
+    MainComponent(AudioEngine& engine);
     ~MainComponent() override;
 
-    void paint(juce::Graphics&) override;
     void resized() override;
+    void paint(juce::Graphics&) override;
 
 private:
-    AudioEngine& audioEngine; // Reference to the audio engine
+    void populateDropdowns();
+    void handleInputSelection();
+    void handleOutputSelection();
+
+    AudioEngine& audioEngine;
 
     // UI Components
     juce::ComboBox inputDropdown;
@@ -20,11 +25,6 @@ private:
     juce::TextButton savePresetButton{"Save Preset"};
     juce::TextButton loadPresetButton{"Load Preset"};
     juce::Label statusLabel;
-
-    // Helper Methods
-    void populateDropdowns();
-    void handleInputSelection();
-    void handleOutputSelection();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

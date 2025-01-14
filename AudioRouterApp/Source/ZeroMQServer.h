@@ -1,23 +1,21 @@
-#ifndef ZEROMQSERVER_H
-#define ZEROMQSERVER_H
+#pragma once
 
 #include <zmq.hpp>
-#include "AudioEngine.h"
 #include <nlohmann/json.hpp>
+#include "AudioEngine.h"
 
 using json = nlohmann::json;
 
-class ZeroMQServer {
+class ZeroMQServer
+{
 public:
     ZeroMQServer(AudioEngine& engine);
-    ~ZeroMQServer();
-
-    void listen(); // Listen for incoming commands from the PyQt5 frontend
+    void listen();
 
 private:
-    AudioEngine& audioEngine;      // Reference to the audio engine
-    zmq::context_t context;        // ZeroMQ context
-    zmq::socket_t socket;          // ZeroMQ socket for communication
-};
+    AudioEngine& audioEngine;
+    zmq::context_t context;
+    zmq::socket_t socket;
 
-#endif // ZEROMQSERVER_H
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ZeroMQServer)
+};
