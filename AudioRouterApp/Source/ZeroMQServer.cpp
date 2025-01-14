@@ -8,7 +8,11 @@ ZeroMQServer::ZeroMQServer(AudioEngine& engine)
 void ZeroMQServer::listen() {
     while (true) {
         zmq::message_t request;
-        socket.recv(request, zmq::recv_flags::none);
+        auto recvResult = socket.recv(request, zmq::recv_flags::none); // Capture return value
+        if (!recvResult) {
+            std::cerr << "Failed to receive message" << std::endl;
+            continue; // Skip to the next iteration if the receive fails
+        }
 
         std::string msg(static_cast<char*>(request.data()), request.size());
         json command = json::parse(msg);
@@ -25,6 +29,9 @@ void ZeroMQServer::listen() {
         }
 
         zmq::message_t reply(response.dump());
-        socket.send(reply, zmq::send_flags::none);
+        auto sendResult = socket.send(reply, zmq::send_flags::none); // Capture return value
+        if (!sendResult) {
+            std::cerr << "Failed to send response" << std::endl;
+        }
     }
 }
