@@ -1,14 +1,10 @@
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QPushButton,
-    QLabel, QWidget, QInputDialog, QStatusBar, QMessageBox
+    QLabel, QWidget, QInputDialog, QMessageBox, QStatusBar
 )
 from PyQt5.QtCore import Qt
-import os
+import json
 import zmq
-
-# Directories for presets
-PRESET_DIR = './presets'
-os.makedirs(PRESET_DIR, exist_ok=True)
 
 class ZeroMQClient:
     """Handles communication with the JUCE backend via ZeroMQ."""
@@ -18,22 +14,21 @@ class ZeroMQClient:
         self.socket.connect("tcp://localhost:5555")
 
     def send_command(self, command):
-        """Send JSON commands to JUCE backend and receive a response."""
+        """Send JSON commands to JUCE and receive the response."""
         try:
-            # Using nlohmann::json compatible JSON format
-            self.socket.send_string(command)
-            reply = self.socket.recv_string()
+            self.socket.send_json(command)
+            reply = self.socket.recv_json()
             print("Reply from JUCE:", reply)
             return reply
         except Exception as e:
             print("Error communicating with JUCE:", e)
-            return '{"status": "error", "message": "' + str(e) + '"}'
+            return {"status": "error", "message": str(e)}
 
 class MainUI(QMainWindow):
     """Main application window."""
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Audio Mixer - Preset Management")
+        self.setWindowTitle("Audio Mixer - Device Management")
         self.setGeometry(100, 100, 600, 400)
 
         self.client = ZeroMQClient()
@@ -41,67 +36,56 @@ class MainUI(QMainWindow):
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
 
-        # Dropdowns for input and output selection
-        self.input_label = QLabel("Input")
-        self.output_label = QLabel("Output")
-        self.input_button = QPushButton("Select Input")
-        self.output_button = QPushButton("Select Output")
-        self.input_button.clicked.connect(self.set_input)
-        self.output_button.clicked.connect(self.set_output)
+        # Fetch devices
+        self.devices = self.fetch_device_list()
+        self.inputs = self.devices.get("inputs", [])
+        self.outputs = self.devices.get("outputs", [])
+
+        # Dropdowns for input and output
+        self.input_label = QLabel("Input Device")
+        self.input_dropdown = QPushButton("Select Input")
+        self.input_dropdown.clicked.connect(self.select_input)
         self.layout.addWidget(self.input_label)
-        self.layout.addWidget(self.input_button)
+        self.layout.addWidget(self.input_dropdown)
+
+        self.output_label = QLabel("Output Device")
+        self.output_dropdown = QPushButton("Select Output")
+        self.output_dropdown.clicked.connect(self.select_output)
         self.layout.addWidget(self.output_label)
-        self.layout.addWidget(self.output_button)
+        self.layout.addWidget(self.output_dropdown)
 
-        # Save and load preset buttons
-        save_btn = QPushButton("Save Preset")
-        save_btn.clicked.connect(self.save_preset)
-        load_btn = QPushButton("Load Preset")
-        load_btn.clicked.connect(self.load_preset)
-        self.layout.addWidget(save_btn)
-        self.layout.addWidget(load_btn)
-
-        # Main widget container
+        # Container widget
         container = QWidget()
         container.setLayout(self.layout)
         self.setCentralWidget(container)
 
-    def set_input(self):
-        """Handle input selection."""
-        input_id, ok = QInputDialog.getInt(self, "Set Input", "Enter Input ID:")
-        if ok:
-            command = f'{{"action": "set_input", "input_id": {input_id}}}'
-            reply = self.client.send_command(command)
-            QMessageBox.information(self, "Response", reply)
+    def fetch_device_list(self):
+        """Fetch available input and output devices from JUCE backend."""
+        command = {"action": "get_device_list"}
+        reply = self.client.send_command(command)
+        return reply
 
-    def set_output(self):
-        """Handle output selection."""
-        output_id, ok = QInputDialog.getInt(self, "Set Output", "Enter Output ID:")
-        if ok:
-            command = f'{{"action": "set_output", "output_id": {output_id}}}'
-            reply = self.client.send_command(command)
-            QMessageBox.information(self, "Response", reply)
-
-    def save_preset(self):
-        """Handle preset saving."""
-        preset_name, ok = QInputDialog.getText(self, "Save Preset", "Preset Name:")
-        if ok and preset_name:
-            command = f'{{"action": "save_preset", "preset_name": "{preset_name}"}}'
-            reply = self.client.send_command(command)
-            QMessageBox.information(self, "Response", reply)
-
-    def load_preset(self):
-        """Handle preset loading."""
-        presets = [f.split('.')[0] for f in os.listdir(PRESET_DIR) if f.endswith('.json')]
-        if not presets:
-            QMessageBox.warning(self, "No Presets", "No presets found to load.")
+    def select_input(self):
+        """Select input device."""
+        if not self.inputs:
+            QMessageBox.warning(self, "No Devices", "No input devices available.")
             return
-
-        preset_name, ok = QInputDialog.getItem(self, "Load Preset", "Select Preset:", presets, 0, False)
-        if ok and preset_name:
-            command = f'{{"action": "load_preset", "preset_name": "{preset_name}"}}'
+        input_device, ok = QInputDialog.getItem(self, "Select Input", "Choose an Input Device:", self.inputs, 0, False)
+        if ok and input_device:
+            command = {"action": "set_input", "device_name": input_device}
             reply = self.client.send_command(command)
-            QMessageBox.information(self, "Response", reply)
+            self.status_bar.showMessage(reply.get("message", "Unknown error"))
+
+    def select_output(self):
+        """Select output device."""
+        if not self.outputs:
+            QMessageBox.warning(self, "No Devices", "No output devices available.")
+            return
+        output_device, ok = QInputDialog.getItem(self, "Select Output", "Choose an Output Device:", self.outputs, 0, False)
+        if ok and output_device:
+            command = {"action": "set_output", "device_name": output_device}
+            reply = self.client.send_command(command)
+            self.status_bar.showMessage(reply.get("message", "Unknown error"))
 
 if __name__ == "__main__":
     app = QApplication([])
