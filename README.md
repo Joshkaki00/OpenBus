@@ -3,7 +3,7 @@ still a work in progress
 
 ## Contributing
 
-**If you want to contribute, please fork the repository and create a pull request**
+**If you want to contribute, please fork the repository and create a pull request!!**
 
 1. Fork the repository.
 2. Create a new branch:
