@@ -2,13 +2,10 @@
 
 AudioEngine::AudioEngine()
 {
-    // Initialize audio graph or other processing structures
+    deviceManager.initialise(2, 2, nullptr, true); // Initialize with 2 input and 2 output channels
 }
 
-AudioEngine::~AudioEngine()
-{
-    // Cleanup resources
-}
+AudioEngine::~AudioEngine() {}
 
 bool AudioEngine::loadPlugin(const juce::File& file)
 {
@@ -53,4 +50,46 @@ bool AudioEngine::loadPreset(const juce::File& file)
         return true;
     }
     return false;
+}
+
+nlohmann::json AudioEngine::getDeviceList()
+{
+    nlohmann::json deviceList;
+
+    auto availableInputs = deviceManager.getAvailableDeviceNames(true); // true = input devices
+    auto availableOutputs = deviceManager.getAvailableDeviceNames(false); // false = output devices
+
+    for (auto& input : availableInputs)
+        deviceList["inputs"].push_back(input.toStdString());
+
+    for (auto& output : availableOutputs)
+        deviceList["outputs"].push_back(output.toStdString());
+
+    return deviceList;
+}
+
+nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
+{
+    auto* currentSetup = deviceManager.getCurrentAudioDeviceSetup();
+
+    currentSetup->inputDeviceName = deviceName;
+    auto result = deviceManager.setAudioDeviceSetup(*currentSetup, true); // true = apply immediately
+
+    if (result.wasOk())
+        return {{"status", "success"}, {"message", "Input device set successfully"}};
+    else
+        return {{"status", "error"}, {"message", result.getErrorMessage().toStdString()}};
+}
+
+nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
+{
+    auto* currentSetup = deviceManager.getCurrentAudioDeviceSetup();
+
+    currentSetup->outputDeviceName = deviceName;
+    auto result = deviceManager.setAudioDeviceSetup(*currentSetup, true); // true = apply immediately
+
+    if (result.wasOk())
+        return {{"status", "success"}, {"message", "Output device set successfully"}};
+    else
+        return {{"status", "error"}, {"message", result.getErrorMessage().toStdString()}};
 }

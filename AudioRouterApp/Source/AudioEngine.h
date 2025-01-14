@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <vector>
 
 class AudioEngine
 {
@@ -12,7 +13,13 @@ public:
     bool savePreset(const juce::File& file);
     bool loadPreset(const juce::File& file);
 
+    // New functions
+    nlohmann::json getDeviceList();
+    nlohmann::json setInputDevice(const std::string& deviceName);
+    nlohmann::json setOutputDevice(const std::string& deviceName);
+
 private:
+    juce::AudioDeviceManager deviceManager;
     juce::AudioProcessorGraph graph;
     juce::AudioProcessorGraph::Node::Ptr currentNode;
 
