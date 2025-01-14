@@ -20,10 +20,6 @@ still a work in progress
     ```
 5. Create a pull request.
 
-## License
-
-OpenBus is licensed under the GLP 3 License. See the [LICENSE](LICENSE) file for more details.
-
 ## Contact
 
 For any questions or suggestions, please open an issue on GitHub or contact me at joshkaki00@gmail.com.
