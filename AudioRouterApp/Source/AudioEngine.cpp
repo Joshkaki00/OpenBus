@@ -6,9 +6,9 @@ json AudioEngine::getDeviceList()
     json inputs, outputs;
 
     // Retrieve available device types
-    auto deviceTypes = deviceManager.getAvailableDeviceTypes();
+    auto& deviceTypes = deviceManager.getAvailableDeviceTypes();
 
-    for (const auto* type : *deviceTypes) // Iterate through device types
+    for (const auto* type : deviceTypes) // Iterate through device types
     {
         type->scanForDevices(); // Scan for devices
 
@@ -35,8 +35,8 @@ json AudioEngine::setInputDevice(const std::string& deviceName)
 
     setup.inputDeviceName = deviceName;
 
-    auto setupSuccess = deviceManager.setAudioDeviceSetup(setup, true); // Configure input device
-    if (setupSuccess) // Explicit boolean check
+    auto result = deviceManager.setAudioDeviceSetup(setup, true); // Configure input device
+    if (result.wasOk()) // Check for success
     {
         response["status"] = "success";
         response["message"] = "Input device set successfully";
@@ -44,7 +44,7 @@ json AudioEngine::setInputDevice(const std::string& deviceName)
     else
     {
         response["status"] = "error";
-        response["message"] = "Failed to set input device"; // Error message
+        response["message"] = result.getErrorMessage().toStdString(); // Error details
     }
 
     return response;
@@ -58,8 +58,8 @@ json AudioEngine::setOutputDevice(const std::string& deviceName)
 
     setup.outputDeviceName = deviceName;
 
-    auto setupSuccess = deviceManager.setAudioDeviceSetup(setup, true); // Configure output device
-    if (setupSuccess) // Explicit boolean check
+    auto result = deviceManager.setAudioDeviceSetup(setup, true); // Configure output device
+    if (result.wasOk()) // Check for success
     {
         response["status"] = "success";
         response["message"] = "Output device set successfully";
@@ -67,7 +67,7 @@ json AudioEngine::setOutputDevice(const std::string& deviceName)
     else
     {
         response["status"] = "error";
-        response["message"] = "Failed to set output device"; // Error message
+        response["message"] = result.getErrorMessage().toStdString(); // Error details
     }
 
     return response;
