@@ -1,7 +1,7 @@
 #include "AudioEngine.h"
 
 AudioEngine::AudioEngine() {
-    deviceManager.initialiseWithDefaultDevices(2, 2);
+    deviceManager.initialiseWithDefaultDevices(2, 2); // Initialize with 2 inputs and 2 outputs
 }
 
 AudioEngine::~AudioEngine() {
@@ -13,11 +13,25 @@ json AudioEngine::getDeviceList() {
         auto inputDevices = currentDevice->getInputChannelNames();
         auto outputDevices = currentDevice->getOutputChannelNames();
 
-        std::vector<std::string> inputs(inputDevices.begin(), inputDevices.end());
-        std::vector<std::string> outputs(outputDevices.begin(), outputDevices.end());
+        // Convert juce::StringArray to std::vector<std::string>
+        std::vector<std::string> inputs;
+        std::vector<std::string> outputs;
 
-        return {{"status", "success"}, {"inputs", inputs}, {"outputs", outputs}};
+        for (const auto& input : inputDevices) {
+            inputs.push_back(input.toStdString());
+        }
+
+        for (const auto& output : outputDevices) {
+            outputs.push_back(output.toStdString());
+        }
+
+        return {
+            {"status", "success"},
+            {"inputs", inputs},
+            {"outputs", outputs}
+        };
     }
+
     return {{"status", "error"}, {"message", "No audio device found"}};
 }
 
