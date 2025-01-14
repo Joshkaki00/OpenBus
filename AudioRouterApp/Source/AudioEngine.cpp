@@ -2,26 +2,27 @@
 
 AudioEngine::AudioEngine()
 {
-    deviceManager.initialiseWithDefaultDevices(2, 2); // Initialize with 2 inputs and 2 outputs
+    // Initialize the audio device manager with default devices (2 inputs, 2 outputs)
+    deviceManager.initialiseWithDefaultDevices(2, 2);
 }
 
 AudioEngine::~AudioEngine() = default;
 
 bool AudioEngine::loadPlugin(const juce::File& file)
 {
-    // TODO: Implement plugin loading logic
+    // Placeholder for plugin loading logic
     return true;
 }
 
 bool AudioEngine::savePreset(const juce::File& file)
 {
-    // TODO: Implement preset saving logic
+    // Placeholder for saving preset logic
     return true;
 }
 
 bool AudioEngine::loadPreset(const juce::File& file)
 {
-    // TODO: Implement preset loading logic
+    // Placeholder for loading preset logic
     return true;
 }
 
@@ -30,15 +31,16 @@ nlohmann::json AudioEngine::getDeviceList()
     nlohmann::json devices;
     nlohmann::json inputs, outputs;
 
-    // Get available device types from the device manager
-    auto deviceTypes = deviceManager.getAvailableDeviceTypes();
-    for (const auto& type : *deviceTypes)
+    // Get available device types
+    auto& deviceTypes = deviceManager.getAvailableDeviceTypes();
+    for (auto* type : deviceTypes)
     {
-        type->scanForDevices(); // Scan for available devices
-        auto inputNames = type->getDeviceNames(true);  // Get input devices
-        auto outputNames = type->getDeviceNames(false); // Get output devices
+        type->scanForDevices();
 
-        // Populate input and output JSON arrays
+        // Retrieve input and output device names
+        auto inputNames = type->getDeviceNames(true);
+        auto outputNames = type->getDeviceNames(false);
+
         for (const auto& input : inputNames)
             inputs.push_back(input.toStdString());
 
@@ -46,6 +48,7 @@ nlohmann::json AudioEngine::getDeviceList()
             outputs.push_back(output.toStdString());
     }
 
+    // Populate JSON with input and output device names
     devices["inputs"] = inputs;
     devices["outputs"] = outputs;
 
@@ -55,21 +58,23 @@ nlohmann::json AudioEngine::getDeviceList()
 nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
 {
     nlohmann::json response;
+
     juce::AudioDeviceManager::AudioDeviceSetup setup;
-    deviceManager.getAudioDeviceSetup(setup); // Get current audio device setup
+    deviceManager.getAudioDeviceSetup(setup);
 
-    setup.inputDeviceName = deviceName; // Set the input device name
-    auto result = deviceManager.setAudioDeviceSetup(setup, true); // Apply the setup
+    // Set the input device name
+    setup.inputDeviceName = deviceName;
+    auto result = deviceManager.setAudioDeviceSetup(setup, true);
 
-    if (result.failed())
+    if (result.wasOk())
     {
-        response["status"] = "error";
-        response["message"] = result.getErrorMessage().toStdString(); // Return error message
+        response["status"] = "success";
+        response["message"] = "Input device set successfully";
     }
     else
     {
-        response["status"] = "success";
-        response["message"] = "Input device set successfully"; // Success message
+        response["status"] = "error";
+        response["message"] = result.getErrorMessage().toStdString();
     }
 
     return response;
@@ -78,21 +83,23 @@ nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
 nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
 {
     nlohmann::json response;
+
     juce::AudioDeviceManager::AudioDeviceSetup setup;
-    deviceManager.getAudioDeviceSetup(setup); // Get current audio device setup
+    deviceManager.getAudioDeviceSetup(setup);
 
-    setup.outputDeviceName = deviceName; // Set the output device name
-    auto result = deviceManager.setAudioDeviceSetup(setup, true); // Apply the setup
+    // Set the output device name
+    setup.outputDeviceName = deviceName;
+    auto result = deviceManager.setAudioDeviceSetup(setup, true);
 
-    if (result.failed())
+    if (result.wasOk())
     {
-        response["status"] = "error";
-        response["message"] = result.getErrorMessage().toStdString(); // Return error message
+        response["status"] = "success";
+        response["message"] = "Output device set successfully";
     }
     else
     {
-        response["status"] = "success";
-        response["message"] = "Output device set successfully"; // Success message
+        response["status"] = "error";
+        response["message"] = result.getErrorMessage().toStdString();
     }
 
     return response;
