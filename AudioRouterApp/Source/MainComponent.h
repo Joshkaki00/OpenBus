@@ -14,12 +14,15 @@ public:
 
 private:
     void populateDropdowns();
-    void handleInputSelection();  // Handles user selection of input devices
-    void handleOutputSelection(); // Handles user selection of output devices
+    void handleInputSelection();
+    void handleOutputSelection();
+    void browseForPlugin();
+    void savePreset();
+    void loadPreset();
 
     AudioEngine& audioEngine;
-    juce::ComboBox inputDropdown;
-    juce::ComboBox outputDropdown;
+    juce::ComboBox inputDropdown, outputDropdown;
+    juce::TextButton selectPluginButton{"Select Plugin"};
     juce::TextButton savePresetButton{"Save Preset"};
     juce::TextButton loadPresetButton{"Load Preset"};
     juce::Label statusLabel;
