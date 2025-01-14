@@ -266,7 +266,10 @@ pyrightconfig.json
 pyvenv.cfg
 pip-selfcheck.json
 
-Vs Code config
+# Vs Code config
 .vscode/
+
+# AudioRouter user state
+AudioRouterApp/Builds/MacOSX/AudioRouter.xcodeproj/project.xcworkspace/xcuserdata/
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,python,c++,venv
