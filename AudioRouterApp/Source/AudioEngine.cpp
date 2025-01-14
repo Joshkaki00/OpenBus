@@ -1,39 +1,21 @@
 #include "AudioEngine.h"
+#include <nlohmann/json.hpp>
 
-AudioEngine::AudioEngine()
+using json = nlohmann::json;
+
+json AudioEngine::getDeviceList()
 {
-    deviceManager.initialiseWithDefaultDevices(2, 2); // Initialize with 2 input and 2 output channels
-}
+    json devices;
+    json inputs, outputs;
 
-AudioEngine::~AudioEngine() = default;
+    // Use a reference to avoid copying the OwnedArray
+    auto& deviceTypes = deviceManager.getAvailableDeviceTypes();
 
-bool AudioEngine::loadPlugin(const juce::File& file)
-{
-    // Plugin loading logic
-    return true;
-}
-
-bool AudioEngine::savePreset(const juce::File& file)
-{
-    // Preset saving logic
-    return true;
-}
-
-bool AudioEngine::loadPreset(const juce::File& file)
-{
-    // Preset loading logic
-    return true;
-}
-
-nlohmann::json AudioEngine::getDeviceList()
-{
-    nlohmann::json devices;
-    nlohmann::json inputs, outputs;
-
-    auto deviceTypes = deviceManager.getAvailableDeviceTypes();
-    for (const auto& type : *deviceTypes)
+    for (int i = 0; i < deviceTypes.size(); ++i)
     {
+        auto* type = deviceTypes[i];
         type->scanForDevices();
+
         auto inputNames = type->getDeviceNames(true);
         auto outputNames = type->getDeviceNames(false);
 
@@ -50,9 +32,10 @@ nlohmann::json AudioEngine::getDeviceList()
     return devices;
 }
 
-nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
+json AudioEngine::setInputDevice(const std::string& deviceName)
 {
-    nlohmann::json response;
+    json response;
+
     juce::AudioDeviceManager::AudioDeviceSetup setup;
     deviceManager.getAudioDeviceSetup(setup);
 
@@ -73,9 +56,10 @@ nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
     return response;
 }
 
-nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
+json AudioEngine::setOutputDevice(const std::string& deviceName)
 {
-    nlohmann::json response;
+    json response;
+
     juce::AudioDeviceManager::AudioDeviceSetup setup;
     deviceManager.getAudioDeviceSetup(setup);
 
