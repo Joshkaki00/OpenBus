@@ -1,44 +1,49 @@
-#include <JuceHeader.h>
-#include "MainComponent.h"
+#include <iostream>
+#include <thread>
 #include "AudioEngine.h"
+#include "ZeroMQServer.h"
+#include <juce_gui_basics/juce_gui_basics.h>
 
-class AudioRouterApplication : public juce::JUCEApplication
+// Custom GUI application class
+class AudioRouterApp : public juce::JUCEApplication
 {
 public:
-    // Return the name of the application
-    const juce::String getApplicationName() override { return "Audio Router"; }
+    AudioRouterApp() = default;
 
-    // Return the version of the application
+    const juce::String getApplicationName() override { return "Audio Router App"; }
     const juce::String getApplicationVersion() override { return "1.0.0"; }
+    bool moreThanOneInstanceAllowed() override { return true; }
 
-    // Called when the application starts
     void initialise(const juce::String&) override
     {
-        audioEngine = std::make_unique<AudioEngine>();
-
-        // Create the main application window
-        mainWindow = std::make_unique<MainWindow>("Audio Router", *audioEngine);
+        // Create main GUI window
+        mainWindow.reset(new MainWindow(getApplicationName()));
     }
 
-    // Called when the application is shutting down
     void shutdown() override
     {
-        mainWindow = nullptr; // Clean up the main window
-        audioEngine = nullptr; // Clean up the audio engine
+        // Clean up
+        mainWindow = nullptr;
     }
 
-private:
+    void systemRequestedQuit() override
+    {
+        quit();
+    }
+
+    void anotherInstanceStarted(const juce::String&) override {}
+
     class MainWindow : public juce::DocumentWindow
     {
     public:
-        MainWindow(const juce::String& name, AudioEngine& engine)
-            : juce::DocumentWindow(name,
-                                   juce::Colours::darkgrey,
-                                   DocumentWindow::allButtons)
+        MainWindow(const juce::String& name)
+            : DocumentWindow(name,
+                             juce::Desktop::getInstance().getDefaultLookAndFeel()
+                                 .findColour(juce::ResizableWindow::backgroundColourId),
+                             DocumentWindow::allButtons)
         {
-            // Set the main component for the window
             setUsingNativeTitleBar(true);
-            setContentOwned(new MainComponent(engine), true);
+            setContentOwned(new MainComponent(), true);
 
             setResizable(true, true);
             centreWithSize(getWidth(), getHeight());
@@ -47,14 +52,101 @@ private:
 
         void closeButtonPressed() override
         {
-            // Handle application close event
             juce::JUCEApplication::getInstance()->systemRequestedQuit();
         }
+
+    private:
+        class MainComponent : public juce::Component
+        {
+        public:
+            MainComponent()
+            {
+                setSize(400, 300);
+
+                // Set up buttons
+                loadPluginButton.setButtonText("Load Plugin");
+                savePresetButton.setButtonText("Save Preset");
+                loadPresetButton.setButtonText("Load Preset");
+
+                // Add buttons to the component
+                addAndMakeVisible(loadPluginButton);
+                addAndMakeVisible(savePresetButton);
+                addAndMakeVisible(loadPresetButton);
+
+                // Attach button listeners
+                loadPluginButton.onClick = [this]() { onLoadPlugin(); };
+                savePresetButton.onClick = [this]() { onSavePreset(); };
+                loadPresetButton.onClick = [this]() { onLoadPreset(); };
+            }
+
+            void resized() override
+            {
+                auto area = getLocalBounds();
+                loadPluginButton.setBounds(area.removeFromTop(40).reduced(10));
+                savePresetButton.setBounds(area.removeFromTop(40).reduced(10));
+                loadPresetButton.setBounds(area.removeFromTop(40).reduced(10));
+            }
+
+        private:
+            void onLoadPlugin()
+            {
+                juce::FileChooser chooser("Select a plugin to load...", {}, "*");
+                if (chooser.browseForFileToOpen())
+                {
+                    juce::File file = chooser.getResult();
+                    if (!audioEngine.loadPlugin(file))
+                    {
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::AlertWindow::WarningIcon,
+                            "Error",
+                            "Failed to load plugin.");
+                    }
+                }
+            }
+
+            void onSavePreset()
+            {
+                juce::FileChooser chooser("Save Preset...", {}, "*");
+                if (chooser.browseForFileToSave(true))
+                {
+                    juce::File file = chooser.getResult();
+                    if (!audioEngine.savePreset(file))
+                    {
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::AlertWindow::WarningIcon,
+                            "Error",
+                            "Failed to save preset.");
+                    }
+                }
+            }
+
+            void onLoadPreset()
+            {
+                juce::FileChooser chooser("Load Preset...", {}, "*");
+                if (chooser.browseForFileToOpen())
+                {
+                    juce::File file = chooser.getResult();
+                    if (!audioEngine.loadPreset(file))
+                    {
+                        juce::AlertWindow::showMessageBoxAsync(
+                            juce::AlertWindow::WarningIcon,
+                            "Error",
+                            "Failed to load preset.");
+                    }
+                }
+            }
+
+            AudioEngine audioEngine;
+
+            juce::TextButton loadPluginButton;
+            juce::TextButton savePresetButton;
+            juce::TextButton loadPresetButton;
+        };
     };
 
-    std::unique_ptr<MainWindow> mainWindow; // The main application window
-    std::unique_ptr<AudioEngine> audioEngine; // The audio engine
+private:
+    std::unique_ptr<MainWindow> mainWindow;
 };
 
-// Start the JUCE application
-START_JUCE_APPLICATION(AudioRouterApplication)
+// Main entry point
+START_JUCE_APPLICATION(AudioRouterApp)

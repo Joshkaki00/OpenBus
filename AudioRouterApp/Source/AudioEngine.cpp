@@ -2,27 +2,26 @@
 
 AudioEngine::AudioEngine()
 {
-    // Initialize the audio device manager with default devices (2 inputs, 2 outputs)
-    deviceManager.initialiseWithDefaultDevices(2, 2);
+    deviceManager.initialiseWithDefaultDevices(2, 2); // Initialize with 2 input and 2 output channels
 }
 
 AudioEngine::~AudioEngine() = default;
 
 bool AudioEngine::loadPlugin(const juce::File& file)
 {
-    // Placeholder for plugin loading logic
+    // Plugin loading logic
     return true;
 }
 
 bool AudioEngine::savePreset(const juce::File& file)
 {
-    // Placeholder for saving preset logic
+    // Preset saving logic
     return true;
 }
 
 bool AudioEngine::loadPreset(const juce::File& file)
 {
-    // Placeholder for loading preset logic
+    // Preset loading logic
     return true;
 }
 
@@ -31,13 +30,10 @@ nlohmann::json AudioEngine::getDeviceList()
     nlohmann::json devices;
     nlohmann::json inputs, outputs;
 
-    // Get available device types
-    auto& deviceTypes = deviceManager.getAvailableDeviceTypes();
-    for (auto* type : deviceTypes)
+    auto deviceTypes = deviceManager.getAvailableDeviceTypes();
+    for (const auto& type : *deviceTypes)
     {
         type->scanForDevices();
-
-        // Retrieve input and output device names
         auto inputNames = type->getDeviceNames(true);
         auto outputNames = type->getDeviceNames(false);
 
@@ -48,7 +44,6 @@ nlohmann::json AudioEngine::getDeviceList()
             outputs.push_back(output.toStdString());
     }
 
-    // Populate JSON with input and output device names
     devices["inputs"] = inputs;
     devices["outputs"] = outputs;
 
@@ -61,21 +56,18 @@ nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
     juce::AudioDeviceManager::AudioDeviceSetup setup;
     deviceManager.getAudioDeviceSetup(setup);
 
-    // Set the input device name
     setup.inputDeviceName = deviceName;
+    auto result = deviceManager.setAudioDeviceSetup(setup, true);
 
-    // Apply the audio device setup
-    juce::String error = deviceManager.setAudioDeviceSetup(setup, true);
-
-    if (error.isEmpty()) // Check if the operation succeeded
+    if (result.wasOk())
     {
         response["status"] = "success";
         response["message"] = "Input device set successfully";
     }
-    else // Handle the error case
+    else
     {
         response["status"] = "error";
-        response["message"] = error.toStdString(); // Convert JUCE String to std::string
+        response["message"] = result.getErrorMessage().toStdString();
     }
 
     return response;
@@ -87,21 +79,18 @@ nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
     juce::AudioDeviceManager::AudioDeviceSetup setup;
     deviceManager.getAudioDeviceSetup(setup);
 
-    // Set the output device name
     setup.outputDeviceName = deviceName;
+    auto result = deviceManager.setAudioDeviceSetup(setup, true);
 
-    // Apply the audio device setup
-    juce::String error = deviceManager.setAudioDeviceSetup(setup, true);
-
-    if (error.isEmpty()) // Check if the operation succeeded
+    if (result.wasOk())
     {
         response["status"] = "success";
         response["message"] = "Output device set successfully";
     }
-    else // Handle the error case
+    else
     {
         response["status"] = "error";
-        response["message"] = error.toStdString(); // Convert JUCE String to std::string
+        response["message"] = result.getErrorMessage().toStdString();
     }
 
     return response;

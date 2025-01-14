@@ -1,23 +1,21 @@
-#ifndef ZEROMQSERVER_H
-#define ZEROMQSERVER_H
+#pragma once
 
 #include "AudioEngine.h"
-#include <nlohmann/json.hpp>
 #include <zmq.hpp>
+#include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
-
-class ZeroMQServer {
+class ZeroMQServer
+{
 public:
-    ZeroMQServer(AudioEngine& engine);
+    ZeroMQServer(AudioEngine& audioEngine);
+    ~ZeroMQServer();
+
     void listen();
 
 private:
-    json processCommand(const json& command); // Declare processCommand
+    nlohmann::json processCommand(const nlohmann::json& command);
 
-    AudioEngine& audioEngine;
     zmq::context_t context;
     zmq::socket_t socket;
+    AudioEngine& audioEngine;
 };
-
-#endif // ZEROMQSERVER_H

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_audio_devices/juce_audio_devices.h>
 #include <nlohmann/json.hpp>
 
 class AudioEngine
@@ -19,6 +19,4 @@ public:
 
 private:
     juce::AudioDeviceManager deviceManager;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioEngine)
 };

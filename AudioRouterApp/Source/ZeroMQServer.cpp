@@ -1,49 +1,12 @@
 #include "ZeroMQServer.h"
-#include "AudioEngine.h"
 
-ZeroMQServer::ZeroMQServer(AudioEngine& engine)
-    : audioEngine(engine)
+ZeroMQServer::ZeroMQServer(AudioEngine& audioEngine)
+    : context(1), socket(context, ZMQ_REP), audioEngine(audioEngine)
 {
-    try
-    {
-        socket.bind("tcp://*:5555");
-        std::cout << "ZeroMQ server bound to port 5555" << std::endl;
-    }
-    catch (const zmq::error_t& e)
-    {
-        std::cerr << "Failed to bind ZeroMQ socket: " << e.what() << std::endl;
-        throw;
-    }
+    socket.bind("tcp://*:5555"); // Bind to port 5555
 }
 
-nlohmann::json ZeroMQServer::processCommand(const nlohmann::json& command)
-{
-    if (!command.contains("action") || !command["action"].is_string())
-    {
-        return {{"status", "error"}, {"message", "Invalid command format"}};
-    }
-
-    std::string action = command["action"].get<std::string>();
-
-    if (action == "get_device_list")
-    {
-        return audioEngine.getDeviceList();
-    }
-    else if (action == "set_input" && command.contains("device_name") && command["device_name"].is_string())
-    {
-        std::string deviceName = command["device_name"].get<std::string>();
-        return audioEngine.setInputDevice(deviceName);
-    }
-    else if (action == "set_output" && command.contains("device_name") && command["device_name"].is_string())
-    {
-        std::string deviceName = command["device_name"].get<std::string>();
-        return audioEngine.setOutputDevice(deviceName);
-    }
-    else
-    {
-        return {{"status", "error"}, {"message", "Unknown or invalid command"}};
-    }
-}
+ZeroMQServer::~ZeroMQServer() = default;
 
 void ZeroMQServer::listen()
 {
@@ -51,13 +14,10 @@ void ZeroMQServer::listen()
     {
         zmq::message_t request;
 
-        // Receive message
         try
         {
-            auto result = socket.recv(request, zmq::recv_flags::none); // zmq::recv returns optional
-
-            // Check if the result has a value (message received successfully)
-            if (!result.has_value())
+            auto result = socket.recv(request, zmq::recv_flags::none);
+            if (!result)
             {
                 std::cerr << "ZeroMQ receive failed: No message received" << std::endl;
                 continue;
@@ -69,14 +29,12 @@ void ZeroMQServer::listen()
             continue;
         }
 
-        // Parse incoming message
         try
         {
             std::string msg(static_cast<char*>(request.data()), request.size());
             nlohmann::json command = nlohmann::json::parse(msg);
             nlohmann::json response = processCommand(command);
 
-            // Send response
             zmq::message_t reply(response.dump());
             socket.send(reply, zmq::send_flags::none);
         }
@@ -85,4 +43,22 @@ void ZeroMQServer::listen()
             std::cerr << "JSON parse error: " << e.what() << std::endl;
         }
     }
+}
+
+nlohmann::json ZeroMQServer::processCommand(const nlohmann::json& command)
+{
+    if (command.contains("action") && command["action"] == "get_devices")
+    {
+        return audioEngine.getDeviceList();
+    }
+    else if (command.contains("action") && command["action"] == "set_input" && command.contains("device_name"))
+    {
+        return audioEngine.setInputDevice(command["device_name"].get<std::string>());
+    }
+    else if (command.contains("action") && command["action"] == "set_output" && command.contains("device_name"))
+    {
+        return audioEngine.setOutputDevice(command["device_name"].get<std::string>());
+    }
+
+    return {{"status", "error"}, {"message", "Unknown or invalid command"}};
 }
