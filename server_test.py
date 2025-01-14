@@ -5,7 +5,7 @@ def test_server():
     # Initialize ZeroMQ context and REQ socket
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
-    socket.RCVTIMEO = 5000  # Timeout in milliseconds
+    
 
     # Connect to the server
     server_address = "tcp://localhost:5555"
@@ -38,6 +38,7 @@ def test_server():
             print(f"Unexpected error: {e}")
 
     # Clean up
+    socket.RCVTIMEO = 5000  # Timeout in milliseconds
     socket.close()
     context.term()
     print("\nTest completed.")
