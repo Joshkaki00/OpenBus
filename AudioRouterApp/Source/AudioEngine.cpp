@@ -1,43 +1,73 @@
 #include "AudioEngine.h"
 
-bool AudioEngine::loadPlugin(const juce::File& file)
+// Retrieve the list of available devices
+nlohmann::json AudioEngine::getDeviceList()
 {
-    // Simulate plugin loading
-    if (file.existsAsFile())
+    nlohmann::json devices;
+    nlohmann::json inputs;
+    nlohmann::json outputs;
+
+    auto deviceTypes = deviceManager.getAvailableDeviceTypes();
+    for (auto* type : *deviceTypes)
     {
-        // Implement actual plugin loading logic here
-        DBG("Plugin loaded: " + file.getFullPathName());
-        return true;
+        type->scanForDevices();
+        auto inputNames = type->getDeviceNames(true);
+        auto outputNames = type->getDeviceNames(false);
+
+        for (const auto& input : inputNames)
+            inputs.push_back(input.toStdString());
+
+        for (const auto& output : outputNames)
+            outputs.push_back(output.toStdString());
     }
 
-    DBG("Failed to load plugin: " + file.getFullPathName());
-    return false;
+    devices["inputs"] = inputs;
+    devices["outputs"] = outputs;
+    return devices;
 }
 
-bool AudioEngine::savePreset(const juce::File& file)
+// Set the input device
+nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
 {
-    // Simulate preset saving
-    if (file.hasWriteAccess())
-    {
-        // Implement actual preset saving logic here
-        DBG("Preset saved: " + file.getFullPathName());
-        return true;
-    }
+    nlohmann::json response;
+    juce::AudioDeviceManager::AudioDeviceSetup setup;
+    deviceManager.getAudioDeviceSetup(setup);
 
-    DBG("Failed to save preset: " + file.getFullPathName());
-    return false;
+    setup.inputDeviceName = deviceName;
+    auto result = deviceManager.setAudioDeviceSetup(setup, true);
+
+    if (result.wasOk())
+    {
+        response["status"] = "success";
+        response["message"] = "Input device set successfully";
+    }
+    else
+    {
+        response["status"] = "error";
+        response["message"] = result.getErrorMessage().toStdString();
+    }
+    return response;
 }
 
-bool AudioEngine::loadPreset(const juce::File& file)
+// Set the output device
+nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
 {
-    // Simulate preset loading
-    if (file.existsAsFile())
-    {
-        // Implement actual preset loading logic here
-        DBG("Preset loaded: " + file.getFullPathName());
-        return true;
-    }
+    nlohmann::json response;
+    juce::AudioDeviceManager::AudioDeviceSetup setup;
+    deviceManager.getAudioDeviceSetup(setup);
 
-    DBG("Failed to load preset: " + file.getFullPathName());
-    return false;
+    setup.outputDeviceName = deviceName;
+    auto result = deviceManager.setAudioDeviceSetup(setup, true);
+
+    if (result.wasOk())
+    {
+        response["status"] = "success";
+        response["message"] = "Output device set successfully";
+    }
+    else
+    {
+        response["status"] = "error";
+        response["message"] = result.getErrorMessage().toStdString();
+    }
+    return response;
 }

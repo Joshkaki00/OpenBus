@@ -1,33 +1,24 @@
 #include "ZeroMQServer.h"
+#include <iostream>
 
-ZeroMQServer::ZeroMQServer(AudioEngine& audioEngine)
-    : context(1), socket(context, ZMQ_REP), audioEngine(audioEngine)
+ZeroMQServer::ZeroMQServer()
+    : socket(context, ZMQ_REP)
 {
-    socket.bind("tcp://*:5555"); // Bind to port 5555
+    socket.bind("tcp://*:5555");
 }
 
-ZeroMQServer::~ZeroMQServer() = default;
+ZeroMQServer::~ZeroMQServer()
+{
+    socket.close();
+    context.close();
+}
 
 void ZeroMQServer::listen()
 {
     while (true)
     {
         zmq::message_t request;
-
-        try
-        {
-            auto result = socket.recv(request, zmq::recv_flags::none);
-            if (!result)
-            {
-                std::cerr << "ZeroMQ receive failed: No message received" << std::endl;
-                continue;
-            }
-        }
-        catch (const zmq::error_t& e)
-        {
-            std::cerr << "ZeroMQ receive error: " << e.what() << std::endl;
-            continue;
-        }
+        socket.recv(request, zmq::recv_flags::none);
 
         try
         {
@@ -41,6 +32,9 @@ void ZeroMQServer::listen()
         catch (const std::exception& e)
         {
             std::cerr << "JSON parse error: " << e.what() << std::endl;
+            nlohmann::json errorResponse = {{"status", "error"}, {"message", "Invalid JSON"}};
+            zmq::message_t reply(errorResponse.dump());
+            socket.send(reply, zmq::send_flags::none);
         }
     }
 }
