@@ -7,15 +7,15 @@
 class ZeroMQServer
 {
 public:
-    ZeroMQServer(AudioEngine& engine); // Constructor
-    ~ZeroMQServer();                   // Destructor
+    ZeroMQServer(AudioEngine& engine);
+    ~ZeroMQServer();
 
-    void listen();                     // Main listener loop
+    void listen();
 
 private:
-    zmq::context_t context;            // ZMQ context
-    zmq::socket_t socket;              // ZMQ socket
-    AudioEngine& audioEngine;          // Reference to AudioEngine
+    zmq::context_t context;
+    zmq::socket_t socket;
+    AudioEngine& audioEngine;
 };
 
 #endif // ZEROMQSERVER_H

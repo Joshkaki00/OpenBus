@@ -2,14 +2,11 @@
 #include <iostream>
 
 // Constructor
-ZeroMQServer::ZeroMQServer(AudioEngine& engine)
-    : context(1),                         // Initialize the context with one I/O thread
-      socket(context, zmq::socket_type::rep), // Initialize the socket after the context
-      audioEngine(engine)                 // Initialize the audio engine last
+ZeroMQServer::ZeroMQServer(AudioEngine& engine) : context(1), socket(context, zmq::socket_type::rep), audioEngine(engine)
 {
     try
     {
-        socket.bind("tcp://*:5555");      // Bind the socket to TCP port 5555
+        socket.bind("tcp://*:5555");
         std::cout << "ZeroMQ server started on port 5555" << std::endl;
     }
     catch (const zmq::error_t& e)

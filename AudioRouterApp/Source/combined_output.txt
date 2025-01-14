@@ -1,0 +1,582 @@
+#include "AudioEngine.h"
+#include <iostream> // For logging
+
+// Constructor
+AudioEngine::AudioEngine()
+{
+    initializeFormats();
+    setupGraph();
+}
+
+// Setup Audio Graph
+void AudioEngine::setupGraph()
+{
+    for (int i = 0; i < maxInputs; ++i)
+    {
+        inputNode[i] = addNode(createIOProcessor(true)).get();
+        outputNode[i] = addNode(createIOProcessor(false)).get();
+    }
+}
+
+// Handle JSON Commands
+void AudioEngine::handleCommand(const std::string& msg)
+{
+    try
+    {
+        auto command = json::parse(msg);
+
+        if (!command.contains("action"))
+        {
+            std::cerr << "Command missing 'action' key." << std::endl;
+            return;
+        }
+
+        const auto action = command["action"].get<std::string>();
+
+        if (action == "add_plugin")
+        {
+            if (command.contains("path") && command.contains("input"))
+            {
+                std::string pluginName = command["path"].get<std::string>();
+                int input = command["input"].get<int>();
+
+                addPlugin(juce::String(pluginName), input);
+            }
+            else
+            {
+                std::cerr << "Missing 'path' or 'input' for add_plugin command." << std::endl;
+            }
+        }
+        else
+        {
+            std::cerr << "Unknown action specified: " << action << std::endl;
+        }
+    }
+    catch (const json::exception& e)
+    {
+        std::cerr << "JSON parsing error: " << e.what() << std::endl;
+    }
+}
+
+// Initialize plugin formats
+void AudioEngine::initializeFormats()
+{
+    if (formatManager.getNumFormats() == 0)
+    {
+        formatManager.addDefaultFormats();
+    }
+}
+
+// Load Plugin
+std::unique_ptr<juce::AudioProcessor> AudioEngine::loadPlugin(const juce::String& path)
+{
+    initializeFormats();
+
+    juce::String errorMessage;
+    juce::File pluginFile(path);
+
+    if (!pluginFile.existsAsFile())
+    {
+        std::cerr << "Invalid plugin path: " << path << std::endl;
+        return nullptr;
+    }
+
+    juce::PluginDescription desc;
+    juce::AudioPluginFormat* format = formatManager.getFormat(0);
+    juce::OwnedArray<juce::PluginDescription> results;
+
+    format->findAllTypesForFile(results, pluginFile.getFullPathName());
+
+    if (results.isEmpty())
+    {
+        std::cerr << "No matching plugins found for: " << path << std::endl;
+        return nullptr;
+    }
+
+    auto plugin = formatManager.createPluginInstance(*results[0], 44100.0, 512, errorMessage);
+
+    if (!plugin)
+    {
+        std::cerr << "Failed to load plugin: " << errorMessage.toStdString() << std::endl;
+        return nullptr;
+    }
+
+    std::cerr << "Plugin loaded successfully: " << results[0]->name.toStdString() << std::endl;
+    return plugin;
+}
+
+// Add Plugin
+void AudioEngine::addPlugin(const juce::String& path, int inputIndex)
+{
+    if (inputIndex < 0 || inputIndex >= maxInputs)
+    {
+        std::cerr << "Invalid input index specified." << std::endl;
+        return;
+    }
+
+    auto plugin = loadPlugin(path);
+
+    if (plugin)
+    {
+        auto node = addNode(std::move(plugin));
+
+        for (int ch = 0; ch < maxInputs; ++ch)
+        {
+            if (inputNode[ch] && outputNode[ch])
+            {
+                addConnection({ { inputNode[ch]->nodeID, 0 }, { node->nodeID, 0 } });
+                addConnection({ { node->nodeID, 0 }, { outputNode[ch]->nodeID, 0 } });
+            }
+        }
+
+        std::cerr << "Plugin added successfully to input: " << inputIndex << std::endl;
+    }
+    else
+    {
+        std::cerr << "Failed to add plugin at path: " << path << std::endl;
+    }
+}
+
+// Create IO Processor
+std::unique_ptr<juce::AudioProcessor> AudioEngine::createIOProcessor(bool isInput)
+{
+    return std::make_unique<juce::AudioProcessorGraph::AudioGraphIOProcessor>(
+        isInput ? juce::AudioProcessorGraph::AudioGraphIOProcessor::audioInputNode
+                : juce::AudioProcessorGraph::AudioGraphIOProcessor::audioOutputNode
+    );
+}
+
+// Setup Virtual Output
+void AudioEngine::setupVirtualOutput(const juce::String& outputName)
+{
+    juce::AudioDeviceManager deviceManager;
+
+    auto* currentDevice = deviceManager.getCurrentAudioDevice();
+    if (currentDevice != nullptr)
+    {
+        juce::StringArray outputs = currentDevice->getOutputChannelNames();
+        if (outputs.contains(outputName))
+        {
+            std::cerr << "Output set to: " << outputName << std::endl;
+        }
+        else
+        {
+            std::cerr << "Output not found!" << std::endl;
+        }
+    }
+    else
+    {
+        std::cerr << "No audio device available!" << std::endl;
+    }
+}
+#ifndef AUDIOENGINE_H
+#define AUDIOENGINE_H
+
+#include <JuceHeader.h>
+#include <nlohmann/json.hpp>
+#include <memory>
+#include <array>
+#include <string>
+
+using json = nlohmann::json;
+
+// AudioEngine Class
+class AudioEngine : public juce::AudioProcessorGraph
+{
+public:
+    // Constructor and Destructor
+    AudioEngine();
+    ~AudioEngine() override = default;
+
+    // Public Methods
+    void setupGraph();                                       // Setup the audio graph
+    void handleCommand(const std::string& msg);             // Handle JSON commands
+    void addPlugin(const juce::String& path, int inputIndex); // Add plugin dynamically
+    void setPluginParam(const juce::String& pluginId,       // Set plugin parameter
+                        const juce::String& paramId, float value);
+    void initializeFormats();                               // Initialize plugin formats
+    void setupVirtualOutput(const juce::String& outputName);// Virtual output configuration
+
+private:
+    // Constants
+    static constexpr int maxInputs = 6; // Max number of input/output channels
+
+    // Nodes for inputs and outputs
+    std::array<juce::AudioProcessorGraph::Node*, maxInputs> inputNode;
+    std::array<juce::AudioProcessorGraph::Node*, maxInputs> outputNode;
+
+    // Plugin Management
+    juce::AudioPluginFormatManager formatManager; // Plugin format manager
+    juce::KnownPluginList knownPlugins;          // Tracks available plugins
+    juce::StringArray deadMansPedal;             // Crash recovery list
+
+    // Private Methods
+    std::unique_ptr<juce::AudioProcessor> createIOProcessor(bool isInput); // Create IO processors
+    std::unique_ptr<juce::AudioProcessor> loadPlugin(const juce::String& path); // Load plugins safely
+
+    // Copy and Move prevention
+    AudioEngine(const AudioEngine&) = delete;
+    AudioEngine& operator=(const AudioEngine&) = delete;
+};
+
+#endif // AUDIOENGINE_H
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// Fix for SMTG_CPP20 redefinition warnings
+#ifndef SMTG_CPP20
+    #define SMTG_CPP20 (__cplusplus >= 202002L)
+#endif
+
+#endif // CONFIG_H
+<key>UIApplicationExitsOnSuspend</key>
+<true/>
+<key>NSPersistentUIEnabled</key>
+<false/>
+<key>NSMicrophoneUsageDescription</key>
+<string>This app requires access to the microphone for audio routing.</string>
+#include <JuceHeader.h>
+#include "MainComponent.h"
+#include "AudioEngine.h"
+
+class AudioRouterApplication : public juce::JUCEApplication
+{
+public:
+    // Return the name of the application
+    const juce::String getApplicationName() override { return "Audio Router"; }
+
+    // Return the version of the application
+    const juce::String getApplicationVersion() override { return "1.0.0"; }
+
+    // Called when the application starts
+    void initialise(const juce::String&) override
+    {
+        audioEngine = std::make_unique<AudioEngine>();
+
+        // Create the main application window
+        mainWindow = std::make_unique<MainWindow>("Audio Router", *audioEngine);
+    }
+
+    // Called when the application is shutting down
+    void shutdown() override
+    {
+        mainWindow = nullptr; // Clean up the main window
+        audioEngine = nullptr; // Clean up the audio engine
+    }
+
+private:
+    class MainWindow : public juce::DocumentWindow
+    {
+    public:
+        MainWindow(const juce::String& name, AudioEngine& engine)
+            : juce::DocumentWindow(name,
+                                   juce::Colours::darkgrey,
+                                   DocumentWindow::allButtons)
+        {
+            // Set the main component for the window
+            setUsingNativeTitleBar(true);
+            setContentOwned(new MainComponent(engine), true);
+
+            setResizable(true, true);
+            centreWithSize(getWidth(), getHeight());
+            setVisible(true);
+        }
+
+        void closeButtonPressed() override
+        {
+            // Handle application close event
+            juce::JUCEApplication::getInstance()->systemRequestedQuit();
+        }
+    };
+
+    std::unique_ptr<MainWindow> mainWindow; // The main application window
+    std::unique_ptr<AudioEngine> audioEngine; // The audio engine
+};
+
+// Start the JUCE application
+START_JUCE_APPLICATION(AudioRouterApplication)
+#include "MainComponent.h"
+
+// Constructor
+MainComponent::MainComponent(AudioEngine& engine)
+    : audioEngine(engine) // Initialize audioEngine reference
+{
+    addAndMakeVisible(inputDropdown);
+    addAndMakeVisible(outputDropdown);
+    addAndMakeVisible(savePresetButton);
+    addAndMakeVisible(loadPresetButton);
+    addAndMakeVisible(statusLabel);
+
+    inputDropdown.addListener(this);
+    outputDropdown.addListener(this);
+    savePresetButton.addListener(this);
+    loadPresetButton.addListener(this);
+
+    populateDropdowns();
+
+    statusLabel.setText("Ready", juce::dontSendNotification);
+    statusLabel.setJustificationType(juce::Justification::centred);
+
+    setSize(400, 300);
+}
+
+// Destructor
+MainComponent::~MainComponent()
+{
+    inputDropdown.removeListener(this);
+    outputDropdown.removeListener(this);
+    savePresetButton.removeListener(this);
+    loadPresetButton.removeListener(this);
+}
+
+// GUI Painting
+void MainComponent::paint(juce::Graphics& g)
+{
+    g.fillAll(juce::Colours::darkgrey);
+    g.setColour(juce::Colours::white);
+    g.setFont(16.0f);
+    g.drawFittedText("Audio Router", getLocalBounds(), juce::Justification::centred, 1);
+}
+
+// Resize Components
+void MainComponent::resized()
+{
+    auto area = getLocalBounds().reduced(20);
+    auto rowHeight = 40;
+
+    inputDropdown.setBounds(area.removeFromTop(rowHeight));
+    area.removeFromTop(10);
+    outputDropdown.setBounds(area.removeFromTop(rowHeight));
+    area.removeFromTop(20);
+    savePresetButton.setBounds(area.removeFromTop(rowHeight).removeFromLeft(area.getWidth() / 2).reduced(5));
+    loadPresetButton.setBounds(area.removeFromTop(rowHeight).reduced(5));
+    area.removeFromTop(10);
+    statusLabel.setBounds(area.removeFromTop(rowHeight));
+}
+
+// Populate Dropdowns
+void MainComponent::populateDropdowns()
+{
+    inputDropdown.addItem("Input 1", 1);
+    inputDropdown.addItem("Input 2", 2);
+    inputDropdown.addItem("Input 3", 3);
+
+    outputDropdown.addItem("Output 1", 1);
+    outputDropdown.addItem("Output 2", 2);
+    outputDropdown.addItem("Output 3", 3);
+
+    inputDropdown.setSelectedId(1);
+    outputDropdown.setSelectedId(1);
+}
+
+// Save Preset
+void MainComponent::savePreset()
+{
+    auto presetPath = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("preset.json");
+
+    json preset = {
+        {"input", inputDropdown.getText().toStdString()},
+        {"output", outputDropdown.getText().toStdString()}
+    };
+
+    try
+    {
+        presetPath.replaceWithText(preset.dump(4)); // Save JSON with proper formatting
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon, "Preset Saved", "Preset saved successfully.");
+    }
+    catch (const std::exception& e)
+    {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Failed to save preset: " + juce::String(e.what()));
+    }
+}
+
+// Load Preset
+void MainComponent::loadPreset()
+{
+    auto presetPath = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory).getChildFile("preset.json");
+
+    if (!presetPath.existsAsFile())
+    {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Preset file not found!");
+        return;
+    }
+
+    try
+    {
+        auto jsonText = presetPath.loadFileAsString().toStdString();
+        auto preset = json::parse(jsonText);
+
+        if (preset.contains("input") && preset.contains("output"))
+        {
+            inputDropdown.setText(juce::String(preset["input"].get<std::string>()), juce::dontSendNotification);
+            outputDropdown.setText(juce::String(preset["output"].get<std::string>()), juce::dontSendNotification);
+
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::InfoIcon, "Preset Loaded", "Preset loaded successfully.");
+        }
+        else
+        {
+            throw std::runtime_error("Invalid preset structure.");
+        }
+    }
+    catch (const std::exception& e)
+    {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Failed to load preset: " + juce::String(e.what()));
+    }
+}
+
+// Button Click Handler
+void MainComponent::buttonClicked(juce::Button* button)
+{
+    if (button == &savePresetButton)
+    {
+        savePreset();
+    }
+    else if (button == &loadPresetButton)
+    {
+        loadPreset();
+    }
+}
+
+// ComboBox Change Handler
+void MainComponent::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged)
+{
+    if (comboBoxThatHasChanged == &inputDropdown)
+    {
+        DBG("Input selected: " << inputDropdown.getText());
+    }
+    else if (comboBoxThatHasChanged == &outputDropdown)
+    {
+        DBG("Output selected: " << outputDropdown.getText());
+    }
+}
+#pragma once
+
+#include <JuceHeader.h>
+#include "AudioEngine.h"
+
+class MainComponent : public juce::Component,
+                      public juce::Button::Listener,
+                      public juce::ComboBox::Listener
+{
+public:
+    explicit MainComponent(AudioEngine& engine); // Constructor with AudioEngine reference
+    ~MainComponent() override;
+
+    void paint(juce::Graphics&) override;
+    void resized() override;
+
+private:
+    // GUI Components
+    juce::ComboBox inputDropdown;
+    juce::ComboBox outputDropdown;
+    juce::TextButton savePresetButton{"Save Preset"};
+    juce::TextButton loadPresetButton{"Load Preset"};
+    juce::Label statusLabel;
+
+    AudioEngine& audioEngine; // Reference to the AudioEngine
+
+    // Helper Methods
+    void populateDropdowns();
+    void savePreset();
+    void loadPreset();
+
+    // Listeners
+    void buttonClicked(juce::Button* button) override;
+    void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
+};
+#include "ZeroMQServer.h"
+#include <iostream>
+
+// Constructor
+ZeroMQServer::ZeroMQServer(AudioEngine& engine)
+    : context(1),                         // Initialize the context with one I/O thread
+      socket(context, zmq::socket_type::rep), // Initialize the socket after the context
+      audioEngine(engine)                 // Initialize the audio engine last
+{
+    try
+    {
+        socket.bind("tcp://*:5555");      // Bind the socket to TCP port 5555
+        std::cout << "ZeroMQ server started on port 5555" << std::endl;
+    }
+    catch (const zmq::error_t& e)
+    {
+        std::cerr << "ZeroMQ initialization error: " << e.what() << std::endl;
+        throw; // Rethrow the exception to handle it at a higher level
+    }
+}
+
+// Destructor
+ZeroMQServer::~ZeroMQServer()
+{
+    try
+    {
+        socket.close();
+        context.close();
+    }
+    catch (const zmq::error_t& e)
+    {
+        std::cerr << "ZeroMQ cleanup error: " << e.what() << std::endl;
+    }
+}
+
+// Main listener loop
+void ZeroMQServer::listen()
+{
+    zmq::pollitem_t items[] = { { static_cast<void*>(socket), 0, ZMQ_POLLIN, 0 } };
+
+    while (true)
+    {
+        try
+        {
+            zmq::poll(&items[0], 1, std::chrono::milliseconds(10)); // Poll every 10 ms
+
+            if (items[0].revents & ZMQ_POLLIN)
+            {
+                zmq::message_t request;
+                auto recvResult = socket.recv(request, zmq::recv_flags::none);
+                if (!recvResult)
+                {
+                    std::cerr << "ZeroMQ receive error!" << std::endl;
+                    continue; // Retry instead of exiting
+                }
+
+                // Handle received message
+                std::string msg(static_cast<char*>(request.data()), request.size());
+                std::cerr << "Received command: " << msg << std::endl; // Debugging log
+                audioEngine.handleCommand(msg);
+
+                // Send reply
+                zmq::message_t reply(5);
+                memcpy(reply.data(), "Done", 5);
+                socket.send(reply, zmq::send_flags::none);
+            }
+        }
+        catch (const zmq::error_t& e)
+        {
+            std::cerr << "ZeroMQ server error: " << e.what() << std::endl;
+        }
+    }
+}
+#ifndef ZEROMQSERVER_H
+#define ZEROMQSERVER_H
+
+#include <zmq.hpp>
+#include "AudioEngine.h"
+
+class ZeroMQServer
+{
+public:
+    ZeroMQServer(AudioEngine& engine); // Constructor
+    ~ZeroMQServer();                   // Destructor
+
+    void listen();                     // Main listener loop
+
+private:
+    zmq::context_t context;            // ZMQ context
+    zmq::socket_t socket;              // ZMQ socket
+    AudioEngine& audioEngine;          // Reference to AudioEngine
+};
+
+#endif // ZEROMQSERVER_H
