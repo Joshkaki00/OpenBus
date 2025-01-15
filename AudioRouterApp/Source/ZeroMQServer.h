@@ -14,7 +14,7 @@ public:
     void listen();
 
 private:
-    nlohmann::json processCommand(const nlohmann::json& command);
+    nlohmann::json processCommand(const nlohmann::json& command, AudioEngine& audioEngine);
 
     zmq::context_t context{1};
     zmq::socket_t socket;
