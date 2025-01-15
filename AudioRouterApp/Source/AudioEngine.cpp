@@ -1,4 +1,8 @@
 #include "AudioEngine.h"
+#include <nlohmann/json.hpp>
+#include <juce_audio_devices/juce_audio_devices.h>
+
+using json = nlohmann::json;
 
 AudioEngine::AudioEngine()
 {
@@ -31,21 +35,22 @@ nlohmann::json AudioEngine::getDeviceList() const
     return response;
 }
 
-nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
+json AudioEngine::setInputDevice(const std::string& deviceName)
 {
-    nlohmann::json response;
+    json response;
     juce::AudioDeviceManager::AudioDeviceSetup setup;
     deviceManager.getAudioDeviceSetup(setup);
-    setup.inputDeviceName = deviceName;
+    setup.inputDeviceName = juce::String(deviceName); // Convert std::string to juce::String
 
-    // Attempt to set the input device and verify success through a follow-up query
+    // Attempt to set the input device
     deviceManager.setAudioDeviceSetup(setup, true);
 
     // Re-fetch the setup to confirm the change
     juce::AudioDeviceManager::AudioDeviceSetup updatedSetup;
     deviceManager.getAudioDeviceSetup(updatedSetup);
 
-    if (updatedSetup.inputDeviceName == deviceName)
+    // Verify if the input device was correctly set
+    if (updatedSetup.inputDeviceName == juce::String(deviceName))
     {
         response["status"] = "success";
         response["message"] = "Input device set successfully";
@@ -59,21 +64,22 @@ nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
     return response;
 }
 
-nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
+json AudioEngine::setOutputDevice(const std::string& deviceName)
 {
-    nlohmann::json response;
+    json response;
     juce::AudioDeviceManager::AudioDeviceSetup setup;
     deviceManager.getAudioDeviceSetup(setup);
-    setup.outputDeviceName = deviceName;
+    setup.outputDeviceName = juce::String(deviceName); // Convert std::string to juce::String
 
-    // Attempt to set the output device and verify success through a follow-up query
+    // Attempt to set the output device
     deviceManager.setAudioDeviceSetup(setup, true);
 
     // Re-fetch the setup to confirm the change
     juce::AudioDeviceManager::AudioDeviceSetup updatedSetup;
     deviceManager.getAudioDeviceSetup(updatedSetup);
 
-    if (updatedSetup.outputDeviceName == deviceName)
+    // Verify if the output device was correctly set
+    if (updatedSetup.outputDeviceName == juce::String(deviceName))
     {
         response["status"] = "success";
         response["message"] = "Output device set successfully";
