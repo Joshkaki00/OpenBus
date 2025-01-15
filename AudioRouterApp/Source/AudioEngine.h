@@ -1,3 +1,4 @@
+#pragma once
 #ifndef AUDIOENGINE_H
 #define AUDIOENGINE_H
 
@@ -10,7 +11,7 @@ class AudioEngine
 public:
     static AudioEngine& getInstance()
     {
-        static AudioEngine instance; // Guaranteed to be destroyed and instantiated on first use
+        static AudioEngine instance;
         return instance;
     }
 
@@ -18,13 +19,14 @@ public:
     AudioEngine(const AudioEngine&) = delete;
     AudioEngine& operator=(const AudioEngine&) = delete;
 
-    // Add your existing methods like setInputDevice, setOutputDevice, loadPlugin, savePreset, etc.
-    bool loadPlugin(const juce::File& file);
-    bool savePreset(const juce::File& file);
-    bool loadPreset(const juce::File& file);
+    nlohmann::json getDeviceList() const;
+    nlohmann::json setInputDevice(const std::string& deviceName);
+    nlohmann::json setOutputDevice(const std::string& deviceName);
 
 private:
-    AudioEngine() = default; // Private constructor
+    AudioEngine() = default;
+
+    juce::AudioDeviceManager deviceManager;
 };
 
 #endif // AUDIOENGINE_H
