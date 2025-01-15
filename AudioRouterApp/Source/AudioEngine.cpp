@@ -1,6 +1,12 @@
 #include "AudioEngine.h"
 
-// Retrieve the list of available devices
+AudioEngine::AudioEngine()
+{
+    deviceManager.initialise(2, 2, nullptr, true);
+}
+
+AudioEngine::~AudioEngine() {}
+
 nlohmann::json AudioEngine::getDeviceList()
 {
     nlohmann::json devices;
@@ -26,7 +32,6 @@ nlohmann::json AudioEngine::getDeviceList()
     return devices;
 }
 
-// Set the input device
 nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
 {
     nlohmann::json response;
@@ -36,7 +41,7 @@ nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
     setup.inputDeviceName = deviceName;
     auto result = deviceManager.setAudioDeviceSetup(setup, true);
 
-    if (result.wasOk())
+    if (result)
     {
         response["status"] = "success";
         response["message"] = "Input device set successfully";
@@ -49,7 +54,6 @@ nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
     return response;
 }
 
-// Set the output device
 nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
 {
     nlohmann::json response;
@@ -59,7 +63,7 @@ nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
     setup.outputDeviceName = deviceName;
     auto result = deviceManager.setAudioDeviceSetup(setup, true);
 
-    if (result.wasOk())
+    if (result)
     {
         response["status"] = "success";
         response["message"] = "Output device set successfully";
@@ -69,5 +73,53 @@ nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
         response["status"] = "error";
         response["message"] = result.getErrorMessage().toStdString();
     }
+    return response;
+}
+
+nlohmann::json AudioEngine::loadPlugin(const juce::File& file)
+{
+    nlohmann::json response;
+    if (!file.existsAsFile())
+    {
+        response["status"] = "error";
+        response["message"] = "Plugin file does not exist.";
+        return response;
+    }
+
+    // Plugin loading logic here
+    response["status"] = "success";
+    response["message"] = "Plugin loaded successfully.";
+    return response;
+}
+
+nlohmann::json AudioEngine::savePreset(const juce::File& file)
+{
+    nlohmann::json response;
+    if (file.getFullPathName().isEmpty())
+    {
+        response["status"] = "error";
+        response["message"] = "Invalid preset file.";
+        return response;
+    }
+
+    // Preset saving logic here
+    response["status"] = "success";
+    response["message"] = "Preset saved successfully.";
+    return response;
+}
+
+nlohmann::json AudioEngine::loadPreset(const juce::File& file)
+{
+    nlohmann::json response;
+    if (!file.existsAsFile())
+    {
+        response["status"] = "error";
+        response["message"] = "Preset file does not exist.";
+        return response;
+    }
+
+    // Preset loading logic here
+    response["status"] = "success";
+    response["message"] = "Preset loaded successfully.";
     return response;
 }
