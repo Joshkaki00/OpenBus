@@ -2,22 +2,23 @@
 #define AUDIOENGINE_H
 
 #include <juce_core/juce_core.h>
-#include <juce_audio_basics/juce_audio_basics.h>
+#include <juce_audio_devices/juce_audio_devices.h>
+#include <nlohmann/json.hpp>
 
 class AudioEngine
 {
 public:
     // Constructor and Destructor
-    AudioEngine() = default;
-    ~AudioEngine() = default;
+    AudioEngine();
+    ~AudioEngine();
 
-    // Plugin and Preset Methods
-    bool loadPlugin(const juce::File& file);
-    bool savePreset(const juce::File& file);
-    bool loadPreset(const juce::File& file);
+    // Device methods
+    nlohmann::json getDeviceList() const;
+    nlohmann::json setInputDevice(const std::string& deviceName);
+    nlohmann::json setOutputDevice(const std::string& deviceName);
 
 private:
-    // Add any private members or methods here if needed
+    juce::AudioDeviceManager deviceManager;
 };
 
 #endif // AUDIOENGINE_H
