@@ -29,10 +29,11 @@ void MainComponent::onLoadPlugin()
         auto file = fc.getResult();
         if (file.exists())
         {
-            auto result = AudioEngine::getInstance().loadPlugin(file);
-            if (!result)
+            if (!AudioEngine::getInstance().loadPlugin(file))
             {
-                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Failed to load plugin.");
+                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                                       "Error",
+                                                       "Failed to load plugin.");
             }
         }
     });
@@ -45,10 +46,11 @@ void MainComponent::onSavePreset()
         auto file = fc.getResult();
         if (!file.getFullPathName().isEmpty())
         {
-            auto result = AudioEngine::getInstance().savePreset(file);
-            if (!result)
+            if (!AudioEngine::getInstance().savePreset(file))
             {
-                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Failed to save preset.");
+                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                                       "Error",
+                                                       "Failed to save preset.");
             }
         }
     });
@@ -61,10 +63,11 @@ void MainComponent::onLoadPreset()
         auto file = fc.getResult();
         if (file.exists())
         {
-            auto result = AudioEngine::getInstance().loadPreset(file);
-            if (!result)
+            if (!AudioEngine::getInstance().loadPreset(file))
             {
-                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon, "Error", "Failed to load preset.");
+                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                                       "Error",
+                                                       "Failed to load preset.");
             }
         }
     });

@@ -8,17 +8,23 @@
 class AudioEngine
 {
 public:
-    // Constructor and Destructor
-    AudioEngine();
-    ~AudioEngine();
+    static AudioEngine& getInstance()
+    {
+        static AudioEngine instance; // Guaranteed to be destroyed and instantiated on first use
+        return instance;
+    }
 
-    // Device methods
-    nlohmann::json getDeviceList() const;
-    nlohmann::json setInputDevice(const std::string& deviceName);
-    nlohmann::json setOutputDevice(const std::string& deviceName);
+    // Prevent copying and assignment
+    AudioEngine(const AudioEngine&) = delete;
+    AudioEngine& operator=(const AudioEngine&) = delete;
+
+    // Add your existing methods like setInputDevice, setOutputDevice, loadPlugin, savePreset, etc.
+    bool loadPlugin(const juce::File& file);
+    bool savePreset(const juce::File& file);
+    bool loadPreset(const juce::File& file);
 
 private:
-    juce::AudioDeviceManager deviceManager;
+    AudioEngine() = default; // Private constructor
 };
 
 #endif // AUDIOENGINE_H
