@@ -6,27 +6,18 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <nlohmann/json.hpp>
 
-class AudioEngine
-{
+class AudioEngine {
 public:
-    static AudioEngine& getInstance()
-    {
-        static AudioEngine instance;
-        return instance;
-    }
-
-    // Prevent copying and assignment
-    AudioEngine(const AudioEngine&) = delete;
-    AudioEngine& operator=(const AudioEngine&) = delete;
+    AudioEngine();
+    ~AudioEngine() = default;
 
     nlohmann::json getDeviceList() const;
     nlohmann::json setInputDevice(const std::string& deviceName);
     nlohmann::json setOutputDevice(const std::string& deviceName);
 
 private:
-    AudioEngine() = default;
-
     juce::AudioDeviceManager deviceManager;
 };
+
 
 #endif // AUDIOENGINE_H

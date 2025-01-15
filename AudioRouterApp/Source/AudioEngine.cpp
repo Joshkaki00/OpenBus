@@ -4,65 +4,63 @@
 
 using json = nlohmann::json;
 
-AudioEngine::AudioEngine()
-{
+AudioEngine::AudioEngine() {
     deviceManager.initialise(2, 2, nullptr, true);
 }
 
-AudioEngine::~AudioEngine() = default;
-
-nlohmann::json AudioEngine::getDeviceList() const
-{
+nlohmann::json AudioEngine::getDeviceList() const {
     nlohmann::json response;
-    auto types = juce::AudioIODeviceType::createAudioIODeviceTypeInstanceList();
-    for (auto* type : types)
-    {
+
+    juce::AudioDeviceManager::AudioDeviceSetup setup;
+    deviceManager.getAudioDeviceSetup(setup);
+
+    auto types = juce::AudioIODeviceType::getTypes();
+    for (auto& type : types) {
         type->scanForDevices();
-        auto inputDevices = type->getDeviceNames(true);
-        auto outputDevices = type->getDeviceNames(false);
+        auto inputDevices = type->getDeviceNames(true);  // true for input devices
+        auto outputDevices = type->getDeviceNames(false); // false for output devices
 
         response["inputs"] = inputDevices;
         response["outputs"] = outputDevices;
     }
+
     return response;
 }
 
-nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName)
-{
+nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName) {
     nlohmann::json response;
+
     juce::AudioDeviceManager::AudioDeviceSetup setup;
     deviceManager.getAudioDeviceSetup(setup);
-
     setup.inputDeviceName = deviceName;
-    if (deviceManager.setAudioDeviceSetup(setup, true))
-    {
+
+    auto error = deviceManager.setAudioDeviceSetup(setup, true);
+    if (error.isEmpty()) { // No error indicates success
         response["status"] = "success";
         response["message"] = "Input device set successfully";
-    }
-    else
-    {
+    } else {
         response["status"] = "error";
-        response["message"] = "Failed to set input device";
+        response["message"] = "Failed to set input device: " + error.toStdString();
     }
+
     return response;
 }
 
-nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName)
-{
+nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName) {
     nlohmann::json response;
+
     juce::AudioDeviceManager::AudioDeviceSetup setup;
     deviceManager.getAudioDeviceSetup(setup);
-
     setup.outputDeviceName = deviceName;
-    if (deviceManager.setAudioDeviceSetup(setup, true))
-    {
+
+    auto error = deviceManager.setAudioDeviceSetup(setup, true);
+    if (error.isEmpty()) { // No error indicates success
         response["status"] = "success";
         response["message"] = "Output device set successfully";
-    }
-    else
-    {
+    } else {
         response["status"] = "error";
-        response["message"] = "Failed to set output device";
+        response["message"] = "Failed to set output device: " + error.toStdString();
     }
+
     return response;
 }
