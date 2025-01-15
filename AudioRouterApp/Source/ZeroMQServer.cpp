@@ -11,32 +11,29 @@ ZeroMQServer::~ZeroMQServer() {
     context.close();
 }
 
-void ZeroMQServer::listen() {
-    AudioEngine audioEngine;
-
-    while (true) {
+void ZeroMQServer::listen()
+{
+    while (true)
+    {
         zmq::message_t request;
-        auto result = socket.recv(request, zmq::recv_flags::none);
+        socket.recv(request, zmq::recv_flags::none);
 
-        // Check if the result is valid (non-empty)
-        if (!result)
+        try
         {
-            std::cerr << "Failed to receive message!" << std::endl;
-            return; // Handle the error appropriately
-        }
-
-        try {
             std::string msg(static_cast<char*>(request.data()), request.size());
             nlohmann::json command = nlohmann::json::parse(msg);
-            nlohmann::json response = processCommand(command, audioEngine);
+
+            // Use the Singleton instance of AudioEngine
+            nlohmann::json response = processCommand(command, AudioEngine::getInstance());
 
             zmq::message_t reply(response.dump());
             socket.send(reply, zmq::send_flags::none);
-        } catch (const std::exception& e) {
-            std::cerr << "JSON parse error: " << e.what() << std::endl;
+        }
+        catch (const std::exception& e)
+        {
             nlohmann::json errorResponse = {
                 {"status", "error"},
-                {"message", "Invalid JSON"}
+                {"message", e.what()}
             };
             zmq::message_t reply(errorResponse.dump());
             socket.send(reply, zmq::send_flags::none);
