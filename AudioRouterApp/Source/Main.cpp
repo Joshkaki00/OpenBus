@@ -1,6 +1,6 @@
 #include "AudioEngine.h"
 #include <juce_gui_basics/juce_gui_basics.h>
-
+#include "MainComponent.h"
 class AudioRouterApp : public juce::JUCEApplication
 {
 public:
@@ -42,7 +42,7 @@ private:
     std::unique_ptr<MainWindow> mainWindow;
 };
 
-class MainComponent : public juce::Component
+
 {
 public:
     MainComponent()
