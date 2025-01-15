@@ -1,23 +1,22 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <nlohmann/json.hpp>
 
 class AudioEngine
 {
 public:
-    AudioEngine();
-    ~AudioEngine();
+    static AudioEngine& getInstance()
+    {
+        static AudioEngine instance;
+        return instance;
+    }
 
-    nlohmann::json getDeviceList();
-    nlohmann::json setInputDevice(const std::string& deviceName);
-    nlohmann::json setOutputDevice(const std::string& deviceName);
-
-    nlohmann::json loadPlugin(const juce::File& file);
-    nlohmann::json savePreset(const juce::File& file);
-    nlohmann::json loadPreset(const juce::File& file);
+    bool loadPlugin(const juce::File& file);
+    bool savePreset(const juce::File& file);
+    bool loadPreset(const juce::File& file);
 
 private:
-    juce::AudioDeviceManager deviceManager;
+    AudioEngine() = default;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioEngine)
 };
