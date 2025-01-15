@@ -42,7 +42,7 @@ private:
     std::unique_ptr<MainWindow> mainWindow;
 };
 
-
+class MainComponent : public juce::Component
 {
 public:
     MainComponent()
