@@ -1,6 +1,7 @@
 #include "AudioEngine.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "MainComponent.h"
+#include "Logger.h"
 
 class AudioRouterApp : public juce::JUCEApplication
 {
@@ -10,11 +11,26 @@ public:
 
     void initialise(const juce::String&) override
     {
+        // Specify the log file path as "juce_log.txt"
+        juce::File logFile = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+                                 .getChildFile("juce_log.txt");
+
+        // Set the custom logger
+        juce::Logger::setCurrentLogger(new juce::FileLogger(logFile, "Application Log Started"));
+
+        // Log an initialization message
+        juce::Logger::writeToLog("Application started.");
+
         mainWindow.reset(new MainWindow("AudioRouterApp", new MainComponent(), *this));
     }
 
     void shutdown() override
     {
+        juce::Logger::writeToLog("Application shutting down.");
+
+        // Clean up the logger
+        juce::Logger::setCurrentLogger(nullptr);
+
         mainWindow = nullptr;
     }
 
