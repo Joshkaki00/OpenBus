@@ -14,7 +14,13 @@ ZeroMQServer::~ZeroMQServer() {
 void ZeroMQServer::listen() {
     while (true) {
         zmq::message_t request;
-        socket.recv(request, zmq::recv_flags::none);
+        auto recvResult = socket.recv(request, zmq::recv_flags::none); // Capture the return value
+
+        // Check if the message was successfully received
+        if (!recvResult) {
+            std::cerr << "Failed to receive message." << std::endl;
+            continue; // Skip processing this iteration
+        }
 
         try {
             std::string msg(static_cast<char*>(request.data()), request.size());
