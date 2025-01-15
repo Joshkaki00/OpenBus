@@ -8,17 +8,17 @@ AudioEngine::AudioEngine() {
     deviceManager.initialise(2, 2, nullptr, true);
 }
 
-nlohmann::json AudioEngine::getDeviceList() const {
+nlohmann::json AudioEngine::getDeviceList() {
     nlohmann::json response;
 
     // Get the list of available device types
     juce::OwnedArray<juce::AudioIODeviceType> types;
-    deviceManager.createAudioDeviceTypes(types);
+    deviceManager.createAudioDeviceTypes(types);  // Ensure deviceManager is not const
 
     // Iterate through device types
     for (auto* type : types) {
-        type->scanForDevices(); // Refresh device list
-        auto inputDevices = type->getDeviceNames(true);  // Input devices
+        type->scanForDevices();  // Refresh device list
+        auto inputDevices = type->getDeviceNames(true);   // Input devices
         auto outputDevices = type->getDeviceNames(false); // Output devices
 
         // Convert JUCE StringArray to std::vector<std::string>
