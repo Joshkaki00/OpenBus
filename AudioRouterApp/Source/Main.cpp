@@ -1,6 +1,15 @@
 #include "AudioEngine.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "MainComponent.h"
+#include <fstream>
+#include <iostream>
+
+void redirectOutputToFile()
+{
+    static std::ofstream logFile("log.txt"); // File stays open throughout execution
+    std::cout.rdbuf(logFile.rdbuf());
+    std::cerr.rdbuf(logFile.rdbuf());
+}
 class AudioRouterApp : public juce::JUCEApplication
 {
 public:

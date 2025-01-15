@@ -1,149 +1,136 @@
 #include "AudioEngine.h"
-
-AudioEngine::AudioEngine()
-{
-    deviceManager.initialiseWithDefaultDevices(2, 2); // Initialize default input/output devices
-}
-
-json AudioEngine::getDeviceList()
-{
-    if (auto* currentDevice = deviceManager.getCurrentAudioDevice())
-    {
-        auto inputDevices = currentDevice->getInputChannelNames();
-        auto outputDevices = currentDevice->getOutputChannelNames();
-
-        std::vector<std::string> inputs;
-        std::vector<std::string> outputs;
-
-        for (const auto& input : inputDevices)
-            inputs.push_back(input.toStdString());
-        for (const auto& output : outputDevices)
-            outputs.push_back(output.toStdString());
-
-        return {
-            {"status", "success"},
-            {"inputs", inputs},
-            {"outputs", outputs}
-        };
-    }
-    return {{"status", "error"}, {"message", "No audio device found"}};
-}
-
-json AudioEngine::setInputDevice(const std::string& deviceName)
-{
-    if (auto* currentDevice = deviceManager.getCurrentAudioDevice())
-    {
-        auto inputDevices = currentDevice->getInputChannelNames();
-        if (inputDevices.contains(juce::String(deviceName)))
-        {
-            DBG("Input device set to: " << deviceName);
-            return {{"status", "success"}, {"message", "Input device set successfully"}};
-        }
-    }
-    return {{"status", "error"}, {"message", "Input device not found"}};
-}
-
-json AudioEngine::setOutputDevice(const std::string& deviceName)
-{
-    if (auto* currentDevice = deviceManager.getCurrentAudioDevice())
-    {
-        auto outputDevices = currentDevice->getOutputChannelNames();
-        if (outputDevices.contains(juce::String(deviceName)))
-        {
-            DBG("Output device set to: " << deviceName);
-            return {{"status", "success"}, {"message", "Output device set successfully"}};
-        }
-    }
-    return {{"status", "error"}, {"message", "Output device not found"}};
-}
-
-json AudioEngine::savePreset(const std::string& presetName)
-{
-    try
-    {
-        json presetData;
-
-        if (auto* currentDevice = deviceManager.getCurrentAudioDevice())
-        {
-            std::vector<std::string> inputChannels;
-            std::vector<std::string> outputChannels;
-
-            // Convert JUCE::StringArray to std::vector<std::string>
-            for (const auto& input : currentDevice->getInputChannelNames())
-                inputChannels.push_back(input.toStdString());
-
-            for (const auto& output : currentDevice->getOutputChannelNames())
-                outputChannels.push_back(output.toStdString());
-
-            presetData["inputChannels"] = inputChannels;
-            presetData["outputChannels"] = outputChannels;
-        }
-
-        std::ofstream file(presetName + ".json");
-        if (!file.is_open())
-            return {{"status", "error"}, {"message", "Failed to open preset file for writing"}};
-
-        file << presetData.dump(4); // Save JSON with indentation
-        file.close();
-
-        return {{"status", "success"}, {"message", "Preset saved successfully"}};
-    }
-    catch (const std::exception& e)
-    {
-        return {{"status", "error"}, {"message", e.what()}};
-    }
-}
-
-json AudioEngine::loadPreset(const std::string& presetName)
-{
-    try
-    {
-        std::ifstream file(presetName + ".json");
-        if (!file.is_open())
-            return {{"status", "error"}, {"message", "Failed to open preset file for reading"}};
-
-        json presetData;
-        file >> presetData;
-        file.close();
-
-        if (presetData.contains("inputChannels") && presetData.contains("outputChannels"))
-        {
-            DBG("Preset loaded: Inputs - " << presetData["inputChannels"].dump());
-            DBG("Preset loaded: Outputs - " << presetData["outputChannels"].dump());
-            return {{"status", "success"}, {"message", "Preset loaded successfully"}};
-        }
-
-        return {{"status", "error"}, {"message", "Invalid preset format"}};
-    }
-    catch (const std::exception& e)
-    {
-        return {{"status", "error"}, {"message", e.what()}};
-    }
-}
-#pragma once
-
-#include <JuceHeader.h>
 #include <nlohmann/json.hpp>
-#include <fstream>
-#include <vector>
-#include <string>
+#include <juce_audio_devices/juce_audio_devices.h>
 
 using json = nlohmann::json;
+
+
+
+bool AudioEngine::loadPlugin(const juce::File& file) {
+    if (!file.existsAsFile()) return false;
+    // Add logic for loading a plugin
+    return true; // Return true if successful
+}
+
+bool AudioEngine::savePreset(const juce::File& file) {
+    if (!file.hasWriteAccess()) return false;
+    // Add logic for saving a preset
+    return file.create(); // Example: Save to file
+}
+
+bool AudioEngine::loadPreset(const juce::File& file) {
+    if (!file.existsAsFile()) return false;
+    // Add logic for loading a preset
+    return true; // Return true if successful
+}
+
+nlohmann::json AudioEngine::getDeviceList() {
+    nlohmann::json response;
+
+    // Get the list of available device types
+    juce::OwnedArray<juce::AudioIODeviceType> types;
+    deviceManager.createAudioDeviceTypes(types);  // Ensure deviceManager is not const
+
+    // Iterate through device types
+    for (auto* type : types) {
+        type->scanForDevices();  // Refresh device list
+        auto inputDevices = type->getDeviceNames(true);   // Input devices
+        auto outputDevices = type->getDeviceNames(false); // Output devices
+
+        // Convert JUCE StringArray to std::vector<std::string>
+        std::vector<std::string> inputs;
+        for (const auto& input : inputDevices) {
+            inputs.push_back(input.toStdString());
+        }
+
+        std::vector<std::string> outputs;
+        for (const auto& output : outputDevices) {
+            outputs.push_back(output.toStdString());
+        }
+
+        // Assign the vectors to JSON
+        response["inputs"] = inputs;
+        response["outputs"] = outputs;
+    }
+
+    return response;
+}
+
+nlohmann::json AudioEngine::setInputDevice(const std::string& deviceName) {
+    nlohmann::json response;
+
+    juce::AudioDeviceManager::AudioDeviceSetup setup;
+    deviceManager.getAudioDeviceSetup(setup);
+    setup.inputDeviceName = deviceName;
+
+    auto error = deviceManager.setAudioDeviceSetup(setup, true);
+    if (error.isEmpty()) { // No error indicates success
+        response["status"] = "success";
+        response["message"] = "Input device set successfully";
+    } else {
+        response["status"] = "error";
+        response["message"] = "Failed to set input device: " + error.toStdString();
+    }
+
+    return response;
+}
+
+nlohmann::json AudioEngine::setOutputDevice(const std::string& deviceName) {
+    nlohmann::json response;
+
+    juce::AudioDeviceManager::AudioDeviceSetup setup;
+    deviceManager.getAudioDeviceSetup(setup);
+    setup.outputDeviceName = deviceName;
+
+    auto error = deviceManager.setAudioDeviceSetup(setup, true);
+    if (error.isEmpty()) { // No error indicates success
+        response["status"] = "success";
+        response["message"] = "Output device set successfully";
+    } else {
+        response["status"] = "error";
+        response["message"] = "Failed to set output device: " + error.toStdString();
+    }
+
+    return response;
+}
+#pragma once
+#ifndef AUDIOENGINE_H
+#define AUDIOENGINE_H
+
+#include <juce_core/juce_core.h>
+#include <juce_audio_devices/juce_audio_devices.h>
+#include <nlohmann/json.hpp>
 
 class AudioEngine
 {
 public:
-    AudioEngine();
+    static AudioEngine& getInstance()
+    {
+        static AudioEngine instance; // Thread-safe in C++11 and later
+        return instance;
+    }
 
-    json getDeviceList();
-    json setInputDevice(const std::string& deviceName);
-    json setOutputDevice(const std::string& deviceName);
-    json savePreset(const std::string& presetName);
-    json loadPreset(const std::string& presetName);
+    nlohmann::json getDeviceList(); // Ensure this matches the definition in the .cpp file
+    nlohmann::json setInputDevice(const std::string& deviceName); // Match this
+    nlohmann::json setOutputDevice(const std::string& deviceName); // Match this
+
+    // Other public methods
+    bool loadPlugin(const juce::File& file);
+    bool savePreset(const juce::File& file);
+    bool loadPreset(const juce::File& file);
 
 private:
-    juce::AudioDeviceManager deviceManager;
+    AudioEngine() = default; // Private constructor
+    ~AudioEngine() = default;
+
+    // Delete copy constructor and assignment operator to prevent copies
+    AudioEngine(const AudioEngine&) = delete;
+    AudioEngine& operator=(const AudioEngine&) = delete;
+
+    juce::AudioDeviceManager deviceManager; // Example member variable
 };
+
+#endif // AUDIOENGINE_H
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -159,48 +146,35 @@ private:
 <false/>
 <key>NSMicrophoneUsageDescription</key>
 <string>This app requires access to the microphone for audio routing.</string>
-#include <JuceHeader.h>
-#include "MainComponent.h"
 #include "AudioEngine.h"
-
-class AudioRouterApplication : public juce::JUCEApplication
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "MainComponent.h"
+class AudioRouterApp : public juce::JUCEApplication
 {
 public:
-    // Return the name of the application
-    const juce::String getApplicationName() override { return "Audio Router"; }
-
-    // Return the version of the application
+    const juce::String getApplicationName() override { return "AudioRouterApp"; }
     const juce::String getApplicationVersion() override { return "1.0.0"; }
 
-    // Called when the application starts
     void initialise(const juce::String&) override
     {
-        audioEngine = std::make_unique<AudioEngine>();
-
-        // Create the main application window
-        mainWindow = std::make_unique<MainWindow>("Audio Router", *audioEngine);
+        mainWindow.reset(new MainWindow("AudioRouterApp", new MainComponent(), *this));
     }
 
-    // Called when the application is shutting down
     void shutdown() override
     {
-        mainWindow = nullptr; // Clean up the main window
-        audioEngine = nullptr; // Clean up the audio engine
+        mainWindow = nullptr;
     }
 
 private:
     class MainWindow : public juce::DocumentWindow
     {
     public:
-        MainWindow(const juce::String& name, AudioEngine& engine)
-            : juce::DocumentWindow(name,
-                                   juce::Colours::darkgrey,
-                                   DocumentWindow::allButtons)
+        MainWindow(const juce::String& name, juce::Component* c, juce::JUCEApplication& app)
+            : juce::DocumentWindow(name, juce::Colours::lightgrey, juce::DocumentWindow::allButtons),
+              application(app)
         {
-            // Set the main component for the window
             setUsingNativeTitleBar(true);
-            setContentOwned(new MainComponent(engine), true);
-
+            setContentOwned(c, true);
             setResizable(true, true);
             centreWithSize(getWidth(), getHeight());
             setVisible(true);
@@ -208,108 +182,98 @@ private:
 
         void closeButtonPressed() override
         {
-            // Handle application close event
-            juce::JUCEApplication::getInstance()->systemRequestedQuit();
+            application.systemRequestedQuit();
         }
+
+    private:
+        juce::JUCEApplication& application;
     };
 
-    std::unique_ptr<MainWindow> mainWindow; // The main application window
-    std::unique_ptr<AudioEngine> audioEngine; // The audio engine
+    std::unique_ptr<MainWindow> mainWindow;
 };
 
-// Start the JUCE application
-START_JUCE_APPLICATION(AudioRouterApplication)
+START_JUCE_APPLICATION(AudioRouterApp)
 #include "MainComponent.h"
+#include "AudioEngine.h"
 
-MainComponent::MainComponent(AudioEngine& engine)
-    : audioEngine(engine)
+MainComponent::MainComponent()
 {
-    // Add UI components to the interface
-    addAndMakeVisible(inputDropdown);
-    addAndMakeVisible(outputDropdown);
+    loadPluginButton.onClick = [this]() { onLoadPlugin(); };
+    savePresetButton.onClick = [this]() { onSavePreset(); };
+    loadPresetButton.onClick = [this]() { onLoadPreset(); };
+
+    addAndMakeVisible(loadPluginButton);
     addAndMakeVisible(savePresetButton);
     addAndMakeVisible(loadPresetButton);
-    addAndMakeVisible(statusLabel);
 
-    // Set up listeners and actions
-    inputDropdown.onChange = [this] { handleInputSelection(); };
-    outputDropdown.onChange = [this] { handleOutputSelection(); };
-    
-    savePresetButton.onClick = [this] {
-        auto response = audioEngine.savePreset("DefaultPreset");
-        statusLabel.setText(juce::String(response.dump()), juce::dontSendNotification);
-    };
-
-    loadPresetButton.onClick = [this] {
-        auto response = audioEngine.loadPreset("DefaultPreset");
-        statusLabel.setText(juce::String(response.dump()), juce::dontSendNotification);
-    };
-
-    populateDropdowns();
-    setSize(400, 300);
-}
-
-MainComponent::~MainComponent() {}
-
-void MainComponent::paint(juce::Graphics& g)
-{
-    g.fillAll(juce::Colours::darkgrey); // Background color
-    g.setColour(juce::Colours::white);
-    g.setFont(16.0f);
-    g.drawFittedText("Audio Router", getLocalBounds(), juce::Justification::centred, 1);
+    setSize(600, 400);
 }
 
 void MainComponent::resized()
 {
-    auto area = getLocalBounds().reduced(20);
-    auto rowHeight = 40;
+    auto area = getLocalBounds().reduced(10);
+    auto buttonHeight = 40;
 
-    inputDropdown.setBounds(area.removeFromTop(rowHeight));
-    outputDropdown.setBounds(area.removeFromTop(rowHeight));
-    area.removeFromTop(20);
-    savePresetButton.setBounds(area.removeFromLeft(area.getWidth() / 2).reduced(5));
-    loadPresetButton.setBounds(area.reduced(5));
-    statusLabel.setBounds(area);
+    loadPluginButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
+    savePresetButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
+    loadPresetButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
 }
 
-void MainComponent::populateDropdowns()
+void MainComponent::onLoadPlugin()
 {
-    auto deviceList = audioEngine.getDeviceList();
-    if (deviceList["status"] == "success")
-    {
-        inputDropdown.clear();
-        outputDropdown.clear();
-
-        for (const auto& input : deviceList["inputs"])
-            inputDropdown.addItem(juce::String(input.get<std::string>()), inputDropdown.getNumItems() + 1);
-
-        for (const auto& output : deviceList["outputs"])
-            outputDropdown.addItem(juce::String(output.get<std::string>()), outputDropdown.getNumItems() + 1);
-    }
-    else
-    {
-        statusLabel.setText("Error retrieving devices", juce::dontSendNotification);
-    }
+    juce::FileChooser chooser("Select a plugin to load...", {}, "*.vst3;*.vst;*.component");
+    chooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+        [this](const juce::FileChooser& fc)
+        {
+            auto file = fc.getResult();
+            if (file.existsAsFile())
+            {
+                if (!AudioEngine::getInstance().loadPlugin(file))
+                {
+                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                        "Error",
+                        "Failed to load plugin.");
+                }
+            }
+        });
 }
 
-void MainComponent::handleInputSelection()
+void MainComponent::onSavePreset()
 {
-    int selectedItemIndex = inputDropdown.getSelectedId() - 1; // Dropdown IDs are 1-based
-    if (selectedItemIndex >= 0)
-    {
-        auto response = audioEngine.setInputDevice(inputDropdown.getItemText(selectedItemIndex).toStdString());
-        statusLabel.setText(juce::String(response.dump()), juce::dontSendNotification);
-    }
+    juce::FileChooser chooser("Save Preset...", {}, "*.preset");
+    chooser.launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+        [this](const juce::FileChooser& fc)
+        {
+            auto file = fc.getResult();
+            if (file.existsAsFile())
+            {
+                if (!AudioEngine::getInstance().savePreset(file))
+                {
+                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                        "Error",
+                        "Failed to save preset.");
+                }
+            }
+        });
 }
 
-void MainComponent::handleOutputSelection()
+void MainComponent::onLoadPreset()
 {
-    int selectedItemIndex = outputDropdown.getSelectedId() - 1; // Dropdown IDs are 1-based
-    if (selectedItemIndex >= 0)
-    {
-        auto response = audioEngine.setOutputDevice(outputDropdown.getItemText(selectedItemIndex).toStdString());
-        statusLabel.setText(juce::String(response.dump()), juce::dontSendNotification);
-    }
+    juce::FileChooser chooser("Load Preset...", {}, "*.preset");
+    chooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+        [this](const juce::FileChooser& fc)
+        {
+            auto file = fc.getResult();
+            if (file.existsAsFile())
+            {
+                if (!AudioEngine::getInstance().loadPreset(file))
+                {
+                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                        "Error",
+                        "Failed to load preset.");
+                }
+            }
+        });
 }
 #pragma once
 
@@ -319,125 +283,124 @@ void MainComponent::handleOutputSelection()
 class MainComponent : public juce::Component
 {
 public:
-    MainComponent(AudioEngine& engine);
-    ~MainComponent() override;
+    // Constructor and Destructor
+    MainComponent();
+    ~MainComponent() override = default;
 
-    void paint(juce::Graphics&) override;
+    // Component Overrides
     void resized() override;
 
 private:
-    void populateDropdowns();
-    void handleInputSelection();  // Handles user selection of input devices
-    void handleOutputSelection(); // Handles user selection of output devices
+    // Button click handlers
+    void onLoadPlugin();
+    void onSavePreset();
+    void onLoadPreset();
 
-    AudioEngine& audioEngine;
-    juce::ComboBox inputDropdown;
-    juce::ComboBox outputDropdown;
+    // UI Components
+    juce::TextButton loadPluginButton{"Load Plugin"};
     juce::TextButton savePresetButton{"Save Preset"};
     juce::TextButton loadPresetButton{"Load Preset"};
-    juce::Label statusLabel;
 
+    // Prevent copy and move
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
 #include "ZeroMQServer.h"
 #include <iostream>
-#include <stdexcept>
 
-ZeroMQServer::ZeroMQServer(AudioEngine& engine)
-    : audioEngine(engine), context(1), socket(context, zmq::socket_type::rep) {
-    try {
-        socket.bind("tcp://*:5555");
-        std::cout << "ZeroMQ server bound to port 5555" << std::endl;
-    } catch (const zmq::error_t& e) {
-        std::cerr << "Failed to bind ZeroMQ socket: " << e.what() << std::endl;
-        throw; // Rethrow the exception to indicate critical failure
-    }
+ZeroMQServer::ZeroMQServer() : socket(context, ZMQ_REP)
+{
+    socket.bind("tcp://*:5555");
 }
 
-json ZeroMQServer::processCommand(const json& command) {
-    if (!command.contains("action") || !command["action"].is_string()) {
-        return {{"status", "error"}, {"message", "Invalid command format"}};
-    }
-
-    std::string action = command["action"].get<std::string>();
-
-    if (action == "get_device_list") {
-        return audioEngine.getDeviceList();
-    } else if (action == "set_input" && command.contains("device_name") && command["device_name"].is_string()) {
-        std::string deviceName = command["device_name"].get<std::string>();
-        return audioEngine.setInputDevice(deviceName);
-    } else if (action == "set_output" && command.contains("device_name") && command["device_name"].is_string()) {
-        std::string deviceName = command["device_name"].get<std::string>();
-        return audioEngine.setOutputDevice(deviceName);
-    } else {
-        return {{"status", "error"}, {"message", "Unknown or invalid command"}};
-    }
+ZeroMQServer::~ZeroMQServer()
+{
+    socket.close();
+    context.close();
 }
 
-void ZeroMQServer::listen() {
-    while (true) {
+void ZeroMQServer::listen()
+{
+    while (true)
+    {
         zmq::message_t request;
-
-        // Receive message
-        try {
-            auto bytesReceived = socket.recv(request, zmq::recv_flags::none);
-            if (!bytesReceived) {
-                std::cerr << "ZeroMQServer: Failed to receive message." << std::endl;
-                continue;
-            }
-        } catch (const zmq::error_t& e) {
-            std::cerr << "ZeroMQ receive error: " << e.what() << std::endl;
-            continue;
+        auto result = socket.recv(request, zmq::recv_flags::none);
+        if (!result)
+        {
+            std::cerr << "Failed to receive message from socket." << std::endl;
+            return; // Or handle the error appropriately
         }
 
-        try {
-            // Parse incoming message
+        try
+        {
             std::string msg(static_cast<char*>(request.data()), request.size());
-            json command = json::parse(msg);
+            nlohmann::json command = nlohmann::json::parse(msg);
 
-            // Prepare response
-            json response = processCommand(command);
+            // Use the Singleton instance of AudioEngine
+            nlohmann::json response = processCommand(command, AudioEngine::getInstance());
 
-            // Send response
             zmq::message_t reply(response.dump());
             socket.send(reply, zmq::send_flags::none);
-        } catch (const json::exception& e) {
-            // Handle JSON parsing errors
-            json errorResponse = {
+        }
+        catch (const std::exception& e)
+        {
+            nlohmann::json errorResponse = {
                 {"status", "error"},
-                {"message", "JSON parsing failed: " + std::string(e.what())}};
-            zmq::message_t reply(errorResponse.dump());
-            socket.send(reply, zmq::send_flags::none);
-        } catch (const std::exception& e) {
-            // Handle other exceptions
-            json errorResponse = {
-                {"status", "error"},
-                {"message", "Exception occurred: " + std::string(e.what())}};
+                {"message", e.what()}
+            };
+
             zmq::message_t reply(errorResponse.dump());
             socket.send(reply, zmq::send_flags::none);
         }
     }
 }
-#ifndef ZEROMQSERVER_H
-#define ZEROMQSERVER_H
 
-#include "AudioEngine.h"
+nlohmann::json ZeroMQServer::processCommand(const nlohmann::json& command, AudioEngine& audioEngine)
+{
+    nlohmann::json response;
+
+    if (command.contains("action"))
+    {
+        std::string action = command["action"];
+        if (action == "get_devices")
+        {
+            return audioEngine.getDeviceList();
+        }
+        else if (action == "set_input" && command.contains("device_name"))
+        {
+            return audioEngine.setInputDevice(command["device_name"]);
+        }
+        else if (action == "set_output" && command.contains("device_name"))
+        {
+            return audioEngine.setOutputDevice(command["device_name"]);
+        }
+    }
+
+    response["status"] = "error";
+    response["message"] = "Unknown or invalid command";
+    return response;
+}
+#ifndef ZEROMQ_SERVER_H
+#define ZEROMQ_SERVER_H
+
 #include <nlohmann/json.hpp>
 #include <zmq.hpp>
+#include <string>
+#include "AudioEngine.h"
 
-using json = nlohmann::json;
-
-class ZeroMQServer {
+class ZeroMQServer
+{
 public:
-    ZeroMQServer(AudioEngine& engine);
+    ZeroMQServer();
+    ~ZeroMQServer();
+
     void listen();
 
 private:
-    json processCommand(const json& command); // Declare processCommand
+    nlohmann::json processCommand(const nlohmann::json& command, AudioEngine& audioEngine);
 
-    AudioEngine& audioEngine;
-    zmq::context_t context;
+    zmq::context_t context{1};
     zmq::socket_t socket;
 };
 
-#endif // ZEROMQSERVER_H
+
+#endif // ZEROMQ_SERVER_H
