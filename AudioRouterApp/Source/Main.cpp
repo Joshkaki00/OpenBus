@@ -58,25 +58,29 @@ MainComponent::MainComponent()
 void MainComponent::resized()
 {
     auto area = getLocalBounds().reduced(10);
-    loadPluginButton.setBounds(area.removeFromTop(30));
-    savePresetButton.setBounds(area.removeFromTop(30));
-    loadPresetButton.setBounds(area.removeFromTop(30));
+    auto buttonHeight = 40;
+
+    loadPluginButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
+    savePresetButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
+    loadPresetButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
 }
 
 void MainComponent::onLoadPlugin()
 {
-    juce::FileChooser chooser("Select a plugin to load...", {}, "*");
+    juce::FileChooser chooser("Select a plugin to load...", {}, "*.vst3;*.vst;*.component");
     chooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
         [this](const juce::FileChooser& fc)
         {
             auto file = fc.getResult();
             if (file.existsAsFile())
             {
-                if (!audioEngine.loadPlugin(file))
+                if (!AudioEngine::getInstance().loadPlugin(file))
                 {
-                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::AlertWindow::WarningIcon,
                         "Error",
-                        "Failed to load plugin.");
+                        "Failed to load plugin."
+                    );
                 }
             }
         });
@@ -84,18 +88,20 @@ void MainComponent::onLoadPlugin()
 
 void MainComponent::onSavePreset()
 {
-    juce::FileChooser chooser("Save Preset...", {}, "*");
+    juce::FileChooser chooser("Save Preset...", {}, "*.preset");
     chooser.launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
         [this](const juce::FileChooser& fc)
         {
             auto file = fc.getResult();
-            if (file.existsAsFile())
+            if (file.hasWriteAccess())
             {
-                if (!audioEngine.savePreset(file))
+                if (!AudioEngine::getInstance().savePreset(file))
                 {
-                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::AlertWindow::WarningIcon,
                         "Error",
-                        "Failed to save preset.");
+                        "Failed to save preset."
+                    );
                 }
             }
         });
@@ -103,18 +109,20 @@ void MainComponent::onSavePreset()
 
 void MainComponent::onLoadPreset()
 {
-    juce::FileChooser chooser("Load Preset...", {}, "*");
+    juce::FileChooser chooser("Load Preset...", {}, "*.preset");
     chooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
         [this](const juce::FileChooser& fc)
         {
             auto file = fc.getResult();
             if (file.existsAsFile())
             {
-                if (!audioEngine.loadPreset(file))
+                if (!AudioEngine::getInstance().loadPreset(file))
                 {
-                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::AlertWindow::WarningIcon,
                         "Error",
-                        "Failed to load preset.");
+                        "Failed to load preset."
+                    );
                 }
             }
         });
