@@ -55,7 +55,7 @@ private:
         juce::JUCEApplication& application;
     };
 
-    std::unique_ptr<MainWindow> mainWindow;
+    std::unique_ptr<juce::DocumentWindow> mainWindow;
 };
 
 START_JUCE_APPLICATION(AudioRouterApp)
