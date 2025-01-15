@@ -11,7 +11,7 @@ public:
     AudioEngine();
     ~AudioEngine() = default;
 
-    nlohmann::json getDeviceList() const;
+    nlohmann::json getDeviceList();
     nlohmann::json setInputDevice(const std::string& deviceName);
     nlohmann::json setOutputDevice(const std::string& deviceName);
 
