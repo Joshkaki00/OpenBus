@@ -10,22 +10,22 @@ AudioEngine::AudioEngine()
     // Initialize any necessary components
 }
 
-bool AudioEngine::loadPlugin(const juce::File& file)
-{
-    // Add logic to load the plugin
-    return file.existsAsFile(); // Placeholder: Replace with actual plugin loading logic
+bool AudioEngine::loadPlugin(const juce::File& file) {
+    if (!file.existsAsFile()) return false;
+    // Add logic for loading a plugin
+    return true; // Return true if successful
 }
 
-bool AudioEngine::savePreset(const juce::File& file)
-{
-    // Add logic to save the preset
-    return file.create(); // Placeholder: Replace with actual preset saving logic
+bool AudioEngine::savePreset(const juce::File& file) {
+    if (!file.hasWriteAccess()) return false;
+    // Add logic for saving a preset
+    return file.create(); // Example: Save to file
 }
 
-bool AudioEngine::loadPreset(const juce::File& file)
-{
-    // Add logic to load the preset
-    return file.existsAsFile(); // Placeholder: Replace with actual preset loading logic
+bool AudioEngine::loadPreset(const juce::File& file) {
+    if (!file.existsAsFile()) return false;
+    // Add logic for loading a preset
+    return true; // Return true if successful
 }
 
 nlohmann::json AudioEngine::getDeviceList() {

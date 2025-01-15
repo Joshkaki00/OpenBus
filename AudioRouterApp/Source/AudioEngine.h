@@ -15,13 +15,13 @@ public:
         return instance;
     }
 
-    // Other public methods
+    // Methods for plugin and preset handling
     bool loadPlugin(const juce::File& file);
     bool savePreset(const juce::File& file);
     bool loadPreset(const juce::File& file);
 
 private:
-    AudioEngine() = default; // Private constructor
+    AudioEngine(); // Private constructor
     ~AudioEngine() = default;
 
     // Delete copy constructor and assignment operator to prevent copies
@@ -30,6 +30,5 @@ private:
 
     juce::AudioDeviceManager deviceManager; // Example member variable
 };
-
 
 #endif // AUDIOENGINE_H
