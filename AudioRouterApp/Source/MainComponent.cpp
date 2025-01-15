@@ -10,6 +10,8 @@ MainComponent::MainComponent()
     addAndMakeVisible(loadPluginButton);
     addAndMakeVisible(savePresetButton);
     addAndMakeVisible(loadPresetButton);
+
+    setSize(600, 400);
 }
 
 void MainComponent::resized()
@@ -25,50 +27,56 @@ void MainComponent::resized()
 void MainComponent::onLoadPlugin()
 {
     juce::FileChooser chooser("Select a plugin to load...", {}, "*.vst3;*.vst;*.component");
-    chooser.launchAsync(juce::FileBrowserComponent::openMode, [this](const juce::FileChooser& fc) {
-        auto file = fc.getResult();
-        if (file.exists())
+    chooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+        [this](const juce::FileChooser& fc)
         {
-            if (!AudioEngine::getInstance().loadPlugin(file))
+            auto file = fc.getResult();
+            if (file.existsAsFile())
             {
-                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                                       "Error",
-                                                       "Failed to load plugin.");
+                if (!AudioEngine::getInstance().loadPlugin(file))
+                {
+                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                        "Error",
+                        "Failed to load plugin.");
+                }
             }
-        }
-    });
+        });
 }
 
 void MainComponent::onSavePreset()
 {
-    juce::FileChooser chooser("Save preset file...", {}, "*.preset");
-    chooser.launchAsync(juce::FileBrowserComponent::saveMode, [this](const juce::FileChooser& fc) {
-        auto file = fc.getResult();
-        if (!file.getFullPathName().isEmpty())
+    juce::FileChooser chooser("Save Preset...", {}, "*.preset");
+    chooser.launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+        [this](const juce::FileChooser& fc)
         {
-            if (!AudioEngine::getInstance().savePreset(file))
+            auto file = fc.getResult();
+            if (file.existsAsFile())
             {
-                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                                       "Error",
-                                                       "Failed to save preset.");
+                if (!AudioEngine::getInstance().savePreset(file))
+                {
+                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                        "Error",
+                        "Failed to save preset.");
+                }
             }
-        }
-    });
+        });
 }
 
 void MainComponent::onLoadPreset()
 {
-    juce::FileChooser chooser("Select a preset file to load...", {}, "*.preset");
-    chooser.launchAsync(juce::FileBrowserComponent::openMode, [this](const juce::FileChooser& fc) {
-        auto file = fc.getResult();
-        if (file.exists())
+    juce::FileChooser chooser("Load Preset...", {}, "*.preset");
+    chooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+        [this](const juce::FileChooser& fc)
         {
-            if (!AudioEngine::getInstance().loadPreset(file))
+            auto file = fc.getResult();
+            if (file.existsAsFile())
             {
-                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                                       "Error",
-                                                       "Failed to load preset.");
+                if (!AudioEngine::getInstance().loadPreset(file))
+                {
+                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                        "Error",
+                        "Failed to load preset.");
+                }
             }
-        }
-    });
+        });
 }
