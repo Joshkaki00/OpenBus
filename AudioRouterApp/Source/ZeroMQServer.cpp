@@ -17,7 +17,12 @@ void ZeroMQServer::listen()
     while (true)
     {
         zmq::message_t request;
-        socket.recv(request, zmq::recv_flags::none); // Ignoring return value is okay if no error handling is required.
+        auto result = socket.recv(request, zmq::recv_flags::none);
+        if (!result)
+        {
+            std::cerr << "Failed to receive message from socket." << std::endl;
+            return; // Or handle the error appropriately
+        }
 
         try
         {
