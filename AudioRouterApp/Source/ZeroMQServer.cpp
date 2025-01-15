@@ -1,12 +1,13 @@
 #include "ZeroMQServer.h"
 #include <iostream>
 
-ZeroMQServer::ZeroMQServer()
-    : socket(context, ZMQ_REP) {
+ZeroMQServer::ZeroMQServer() : socket(context, ZMQ_REP)
+{
     socket.bind("tcp://*:5555");
 }
 
-ZeroMQServer::~ZeroMQServer() {
+ZeroMQServer::~ZeroMQServer()
+{
     socket.close();
     context.close();
 }
@@ -16,12 +17,7 @@ void ZeroMQServer::listen()
     while (true)
     {
         zmq::message_t request;
-        auto result = socket.recv(request, zmq::recv_flags::none);
-        if (!result)
-        {
-            std::cerr << "Failed to receive message from socket." << std::endl;
-            return; // Or handle the error appropriately
-        }
+        socket.recv(request, zmq::recv_flags::none); // Ignoring return value is okay if no error handling is required.
 
         try
         {
@@ -40,23 +36,35 @@ void ZeroMQServer::listen()
                 {"status", "error"},
                 {"message", e.what()}
             };
+
             zmq::message_t reply(errorResponse.dump());
             socket.send(reply, zmq::send_flags::none);
         }
     }
 }
 
-nlohmann::json processCommand(const nlohmann::json& command, AudioEngine& audioEngine) {
-    if (command.contains("action")) {
+nlohmann::json ZeroMQServer::processCommand(const nlohmann::json& command, AudioEngine& audioEngine)
+{
+    nlohmann::json response;
+
+    if (command.contains("action"))
+    {
         std::string action = command["action"];
-        if (action == "get_devices") {
+        if (action == "get_devices")
+        {
             return audioEngine.getDeviceList();
-        } else if (action == "set_input" && command.contains("device_name")) {
+        }
+        else if (action == "set_input" && command.contains("device_name"))
+        {
             return audioEngine.setInputDevice(command["device_name"]);
-        } else if (action == "set_output" && command.contains("device_name")) {
+        }
+        else if (action == "set_output" && command.contains("device_name"))
+        {
             return audioEngine.setOutputDevice(command["device_name"]);
         }
     }
 
-    return {{"status", "error"}, {"message", "Unknown or invalid command"}};
+    response["status"] = "error";
+    response["message"] = "Unknown or invalid command";
+    return response;
 }
