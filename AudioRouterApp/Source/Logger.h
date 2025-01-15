@@ -5,17 +5,21 @@
 class FileLogger : public juce::Logger
 {
 public:
-    // Constructor that takes a file path
-    FileLogger(const juce::File& logFile);
-    
-    // Destructor
-    ~FileLogger() override;
+    FileLogger(const juce::File& logFile)
+        : logFileStream(logFile, juce::File::writeOnly)
+    {
+        jassert(logFileStream.openedOk());
+    }
 
-    // Overridden logMessage method from juce::Logger
-    void logMessage(const juce::String& message) override;
+    ~FileLogger() override = default;
+
+    void logMessage(const juce::String& message) override
+    {
+        logFileStream.writeText(message + "\n", false, false);
+    }
 
 private:
-    std::unique_ptr<juce::FileOutputStream> logStream; // File output stream for the log file
+    juce::FileOutputStream logFileStream;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FileLogger)
+    JUCE_LEAK_DETECTOR(FileLogger) // Add this macro to detect leaks
 };
