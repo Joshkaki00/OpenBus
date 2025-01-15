@@ -4,8 +4,29 @@
 
 using json = nlohmann::json;
 
-AudioEngine::AudioEngine() {
-    deviceManager.initialise(2, 2, nullptr, true);
+#include "AudioEngine.h"
+
+AudioEngine::AudioEngine()
+{
+    // Initialize any necessary components
+}
+
+bool AudioEngine::loadPlugin(const juce::File& file)
+{
+    // Add logic to load the plugin
+    return file.existsAsFile(); // Placeholder: Replace with actual plugin loading logic
+}
+
+bool AudioEngine::savePreset(const juce::File& file)
+{
+    // Add logic to save the preset
+    return file.create(); // Placeholder: Replace with actual preset saving logic
+}
+
+bool AudioEngine::loadPreset(const juce::File& file)
+{
+    // Add logic to load the preset
+    return file.existsAsFile(); // Placeholder: Replace with actual preset loading logic
 }
 
 nlohmann::json AudioEngine::getDeviceList() {
