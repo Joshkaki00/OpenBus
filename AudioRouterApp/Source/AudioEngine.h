@@ -10,6 +10,10 @@ class AudioEngine {
 public:
     AudioEngine();
     ~AudioEngine() = default;
+    
+    bool loadPlugin(const juce::File& file);
+    bool savePreset(const juce::File& file);
+    bool loadPreset(const juce::File& file);
 
     nlohmann::json getDeviceList();
     nlohmann::json setInputDevice(const std::string& deviceName);
