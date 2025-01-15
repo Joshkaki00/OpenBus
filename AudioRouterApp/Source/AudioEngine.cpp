@@ -5,10 +5,6 @@
 using json = nlohmann::json;
 
 
-AudioEngine::AudioEngine()
-{
-    // Initialize any necessary components
-}
 
 bool AudioEngine::loadPlugin(const juce::File& file) {
     if (!file.existsAsFile()) return false;

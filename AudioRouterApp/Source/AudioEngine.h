@@ -15,13 +15,17 @@ public:
         return instance;
     }
 
-    // Methods for plugin and preset handling
+    nlohmann::json getDeviceList(); // Ensure this matches the definition in the .cpp file
+    nlohmann::json setInputDevice(const std::string& deviceName); // Match this
+    nlohmann::json setOutputDevice(const std::string& deviceName); // Match this
+
+    // Other public methods
     bool loadPlugin(const juce::File& file);
     bool savePreset(const juce::File& file);
     bool loadPreset(const juce::File& file);
 
 private:
-    AudioEngine(); // Private constructor
+    AudioEngine() = default; // Private constructor
     ~AudioEngine() = default;
 
     // Delete copy constructor and assignment operator to prevent copies
