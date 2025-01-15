@@ -2,7 +2,6 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "MainComponent.h"
 
-
 class AudioRouterApp : public juce::JUCEApplication
 {
 public:
