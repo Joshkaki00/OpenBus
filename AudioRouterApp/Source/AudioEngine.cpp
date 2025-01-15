@@ -8,7 +8,7 @@ AudioEngine::AudioEngine() {
     deviceManager.initialise(2, 2, nullptr, true);
 }
 
-nlohmann::json AudioEngine::getDeviceList() {
+nlohmann::json AudioEngine::getDeviceList() const {
     nlohmann::json response;
 
     // Get the list of available device types
