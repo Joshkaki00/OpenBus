@@ -27,19 +27,17 @@ void ZeroMQServer::listen() {
             socket.send(reply, zmq::send_flags::none);
         } catch (const std::exception& e) {
             std::cerr << "JSON parse error: " << e.what() << std::endl;
-
             nlohmann::json errorResponse = {
                 {"status", "error"},
                 {"message", "Invalid JSON"}
             };
-
             zmq::message_t reply(errorResponse.dump());
             socket.send(reply, zmq::send_flags::none);
         }
     }
 }
 
-nlohmann::json ZeroMQServer::processCommand(const nlohmann::json& command, AudioEngine& audioEngine) {
+nlohmann::json processCommand(const nlohmann::json& command, AudioEngine& audioEngine) {
     if (command.contains("action")) {
         std::string action = command["action"];
         if (action == "get_devices") {
