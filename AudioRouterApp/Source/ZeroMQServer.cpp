@@ -41,15 +41,22 @@ void ZeroMQServer::listen() {
     }
 }
 
-nlohmann::json ZeroMQServer::processCommand(const nlohmann::json& command) {
-    if (command.contains("action")) {
+nlohmann::json ZeroMQServer::processCommand(const nlohmann::json& command)
+{
+    if (command.contains("action"))
+    {
         std::string action = command["action"];
-        if (action == "get_devices") {
-            return audioEngine.getDeviceList();
-        } else if (action == "set_input" && command.contains("device_name")) {
-            return audioEngine.setInputDevice(command["device_name"]);
-        } else if (action == "set_output" && command.contains("device_name")) {
-            return audioEngine.setOutputDevice(command["device_name"]);
+        if (action == "get_devices")
+        {
+            return AudioEngine::getInstance().getDeviceList();
+        }
+        else if (action == "set_input" && command.contains("device_name"))
+        {
+            return AudioEngine::getInstance().setInputDevice(command["device_name"]);
+        }
+        else if (action == "set_output" && command.contains("device_name"))
+        {
+            return AudioEngine::getInstance().setOutputDevice(command["device_name"]);
         }
     }
     return {{"status", "error"}, {"message", "Unknown or invalid command"}};
