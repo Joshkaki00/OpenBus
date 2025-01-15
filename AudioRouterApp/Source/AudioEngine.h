@@ -1,22 +1,39 @@
-#pragma once
+#ifndef AUDIO_ENGINE_H
+#define AUDIO_ENGINE_H
 
-#include <JuceHeader.h>
+#include <nlohmann/json.hpp> // For JSON support
+#include <string>
 
-class AudioEngine
-{
+class AudioEngine {
 public:
-    static AudioEngine& getInstance()
-    {
-        static AudioEngine instance;
-        return instance;
+    AudioEngine() = default; // Public default constructor
+
+    // Method to get the list of audio devices
+    nlohmann::json getDeviceList() {
+        nlohmann::json devices = {
+            {"inputDevices", {"Microphone 1", "Microphone 2"}},
+            {"outputDevices", {"Speakers", "Headphones"}}
+        };
+        return devices;
     }
 
-    bool loadPlugin(const juce::File& file);
-    bool savePreset(const juce::File& file);
-    bool loadPreset(const juce::File& file);
+    // Method to set input device
+    nlohmann::json setInputDevice(const std::string& deviceName) {
+        if (deviceName.empty()) {
+            return {{"status", "error"}, {"message", "Device name cannot be empty"}};
+        }
+        // Simulate successful input device set
+        return {{"status", "success"}, {"message", "Input device set to " + deviceName}};
+    }
 
-private:
-    AudioEngine() = default;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioEngine)
+    // Method to set output device
+    nlohmann::json setOutputDevice(const std::string& deviceName) {
+        if (deviceName.empty()) {
+            return {{"status", "error"}, {"message", "Device name cannot be empty"}};
+        }
+        // Simulate successful output device set
+        return {{"status", "success"}, {"message", "Output device set to " + deviceName}};
+    }
 };
+
+#endif // AUDIO_ENGINE_H
