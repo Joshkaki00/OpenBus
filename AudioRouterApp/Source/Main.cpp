@@ -27,10 +27,7 @@ public:
     void shutdown() override
     {
         juce::Logger::writeToLog("Application shutting down.");
-
-        // Clean up the logger
-        juce::Logger::setCurrentLogger(nullptr);
-
+        juce::Logger::setCurrentLogger(nullptr); // Reset the logger to avoid leaks
         mainWindow = nullptr;
     }
 
