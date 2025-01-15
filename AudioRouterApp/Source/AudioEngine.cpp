@@ -11,11 +11,11 @@ AudioEngine::AudioEngine() {
 nlohmann::json AudioEngine::getDeviceList() const {
     nlohmann::json response;
 
-    juce::AudioDeviceManager::AudioDeviceSetup setup;
-    deviceManager.getAudioDeviceSetup(setup);
+    // Get the list of available device types
+    juce::OwnedArray<juce::AudioIODeviceType> types;
+    deviceManager.createAudioDeviceTypes(types);
 
-    auto types = juce::AudioIODeviceType::getTypes();
-    for (auto& type : types) {
+    for (auto* type : types) {
         type->scanForDevices();
         auto inputDevices = type->getDeviceNames(true);  // true for input devices
         auto outputDevices = type->getDeviceNames(false); // false for output devices
