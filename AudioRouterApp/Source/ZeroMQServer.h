@@ -17,8 +17,8 @@ private:
     nlohmann::json processCommand(const nlohmann::json& command, AudioEngine& audioEngine);
 
     zmq::context_t context{1};
-    zmq::socket_t socket;
-    AudioEngine audioEngine; // Ensure AudioEngine has a public default constructor
+    zmq::socket_t socket{context, zmq::socket_type::rep}; // Example: reply socket
 };
+
 
 #endif // ZEROMQ_SERVER_H
