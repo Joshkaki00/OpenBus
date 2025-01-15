@@ -6,7 +6,8 @@
 #include <string>
 #include "AudioEngine.h"
 
-class ZeroMQServer {
+class ZeroMQServer
+{
 public:
     ZeroMQServer();
     ~ZeroMQServer();
@@ -17,7 +18,7 @@ private:
     nlohmann::json processCommand(const nlohmann::json& command, AudioEngine& audioEngine);
 
     zmq::context_t context{1};
-    zmq::socket_t socket{context, zmq::socket_type::rep}; // Example: reply socket
+    zmq::socket_t socket;
 };
 
 
