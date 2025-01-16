@@ -3,25 +3,88 @@
 
 MainComponent::MainComponent()
 {
-    loadPluginButton.onClick = [this]() { onLoadPlugin(); };
-    savePresetButton.onClick = [this]() { onSavePreset(); };
-    loadPresetButton.onClick = [this]() { onLoadPreset(); };
+    // Initialize the audio device manager
+    audioDeviceManager.initialiseWithDefaultDevices(2, 2); // 2 inputs, 2 outputs
 
-    addAndMakeVisible(loadPluginButton);
-    addAndMakeVisible(savePresetButton);
-    addAndMakeVisible(loadPresetButton);
+    // Setup the dropdowns
+    setupDropdown(hardwareInputsMenu, "Hardware Inputs", hardwareInputsLabel);
+    setupDropdown(virtualInputsMenu, "Virtual Inputs", virtualInputsLabel);
+    setupDropdown(hardwareOutMenu, "Hardware Outputs", hardwareOutLabel);
 
-    setSize(600, 400);
+    // Get available device types
+    auto availableDeviceTypes = audioDeviceManager.getAvailableDeviceTypes();
+
+    // Populate hardware inputs
+    for (auto* deviceType : availableDeviceTypes)
+    {
+        auto deviceNames = deviceType->getDeviceNames(0); // Input devices
+        populateDropdown(hardwareInputsMenu, deviceNames);
+    }
+
+    // Populate virtual inputs and hardware outputs as placeholders
+    // These might require platform-specific APIs or custom configurations
+    populateDropdown(virtualInputsMenu, { "Virtual Input 1", "Virtual Input 2" });
+    populateDropdown(hardwareOutMenu, audioDeviceManager.getCurrentAudioDevice()->getOutputChannelNames());
+
+    // Add listeners
+    hardwareInputsMenu.onChange = [&]() {
+        auto selectedInput = hardwareInputsMenu.getText();
+        DBG("Selected Hardware Input: " << selectedInput);
+    };
+
+    virtualInputsMenu.onChange = [&]() {
+        auto selectedInput = virtualInputsMenu.getText();
+        DBG("Selected Virtual Input: " << selectedInput);
+    };
+
+    hardwareOutMenu.onChange = [&]() {
+        auto selectedOutput = hardwareOutMenu.getText();
+        DBG("Selected Hardware Output: " << selectedOutput);
+    };
+
+    setSize(400, 300);
+}
+
+MainComponent::~MainComponent() {}
+
+void MainComponent::paint(juce::Graphics& g)
+{
+    g.fillAll(juce::Colours::lightgrey);
 }
 
 void MainComponent::resized()
 {
-    auto area = getLocalBounds().reduced(10);
-    auto buttonHeight = 40;
+    // Set component bounds
+    auto area = getLocalBounds().reduced(20);
+    auto labelHeight = 20;
+    auto dropdownHeight = 30;
 
-    loadPluginButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
-    savePresetButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
-    loadPresetButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
+    hardwareInputsLabel.setBounds(area.removeFromTop(labelHeight));
+    hardwareInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 10));
+
+    virtualInputsLabel.setBounds(area.removeFromTop(labelHeight));
+    virtualInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 10));
+
+    hardwareOutLabel.setBounds(area.removeFromTop(labelHeight));
+    hardwareOutMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 10));
+}
+
+void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
+{
+    addAndMakeVisible(dropdown);
+    dropdown.setJustificationType(juce::Justification::centredLeft);
+
+    addAndMakeVisible(label);
+    label.setText(labelText, juce::dontSendNotification);
+    label.attachToComponent(&dropdown, true);
+}
+
+void MainComponent::populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& deviceNames)
+{
+    for (auto& name : deviceNames)
+    {
+        dropdown.addItem(name, dropdown.getNumItems() + 1);
+    }
 }
 
 void MainComponent::onLoadPlugin()

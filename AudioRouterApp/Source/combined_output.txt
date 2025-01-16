@@ -146,59 +146,10 @@ private:
 <false/>
 <key>NSMicrophoneUsageDescription</key>
 <string>This app requires access to the microphone for audio routing.</string>
-#include "Logger.h"
-
-FileLogger::FileLogger(const juce::File& logFile)
-{
-    if (logFile.existsAsFile() || logFile.create())
-        logStream = logFile.createOutputStream();
-}
-
-FileLogger::~FileLogger()
-{
-    logStream.reset(); // Close the file stream
-}
-
-void FileLogger::logMessage(const juce::String& message)
-{
-    if (logStream)
-    {
-        // Add timestamp to the log message
-        auto timestamp = juce::Time::getCurrentTime().toString(true, true);
-        logStream->writeText("[" + timestamp + "] " + message + "\n", false, false, nullptr);
-        logStream->flush(); // Ensure the log message is immediately written to the file
-    }
-}#pragma once
-
-#include <juce_core/juce_core.h>
-
-class FileLogger : public juce::Logger
-{
-public:
-    FileLogger(const juce::File& logFile)
-        : logFileStream(logFile.createOutputStream()) // Create the FileOutputStream
-    {
-        jassert(logFileStream != nullptr && logFileStream->openedOk()); // Ensure the stream is valid
-    }
-
-    ~FileLogger() override = default;
-
-    void logMessage(const juce::String& message) override
-    {
-        if (logFileStream != nullptr) // Ensure the stream is valid
-        {
-            logFileStream->writeText(message + "\n", false, false, "\n"); // Corrected call
-        }
-    }
-
-private:
-    std::unique_ptr<juce::FileOutputStream> logFileStream; // Use a unique_ptr for FileOutputStream
-
-    JUCE_LEAK_DETECTOR(FileLogger) // Add leak detector
-};#include "AudioEngine.h"
+#include "AudioEngine.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "MainComponent.h"
-#include "Logger.h"
+
 
 class AudioRouterApp : public juce::JUCEApplication
 {
@@ -208,23 +159,12 @@ public:
 
     void initialise(const juce::String&) override
     {
-        // Specify the log file path as "juce_log.txt"
-        juce::File logFile = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
-                                 .getChildFile("juce_log.txt");
-
-        // Set the custom logger
-        juce::Logger::setCurrentLogger(new juce::FileLogger(logFile, "Application Log Started"));
-
-        // Log an initialization message
-        juce::Logger::writeToLog("Application started.");
-
+        
         mainWindow.reset(new MainWindow("AudioRouterApp", new MainComponent(), *this));
     }
 
     void shutdown() override
     {
-        juce::Logger::writeToLog("Application shutting down.");
-        juce::Logger::setCurrentLogger(nullptr); // Reset the logger to avoid leaks
         mainWindow = nullptr;
     }
 
