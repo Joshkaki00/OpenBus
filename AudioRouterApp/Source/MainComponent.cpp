@@ -3,10 +3,11 @@
 
 MainComponent::MainComponent()
 {
+    // Create and assign the custom LookAndFeel
     customLookAndFeel = std::make_unique<CustomLookAndFeel>();
     setLookAndFeel(customLookAndFeel.get());
 
-    // Initialize the audio device manager with default devices
+    // Initialize the audio device manager
     audioDeviceManager.initialiseWithDefaultDevices(2, 2); // 2 inputs, 2 outputs
 
     // Setup the dropdowns
@@ -20,11 +21,11 @@ MainComponent::MainComponent()
     // Populate hardware inputs
     for (auto* deviceType : availableDeviceTypes)
     {
-        auto deviceNames = deviceType->getDeviceNames(0); // Get input device names
+        auto deviceNames = deviceType->getDeviceNames(0); // Input devices
         populateDropdown(hardwareInputsMenu, deviceNames);
     }
 
-    // Populate virtual inputs (placeholder names) and hardware outputs
+    // Populate virtual inputs and hardware outputs as placeholders
     populateDropdown(virtualInputsMenu, { "Virtual Input 1", "Virtual Input 2" });
     if (auto* currentDevice = audioDeviceManager.getCurrentAudioDevice())
         populateDropdown(hardwareOutMenu, currentDevice->getOutputChannelNames());
@@ -48,7 +49,10 @@ MainComponent::MainComponent()
     setSize(600, 400);
 }
 
-MainComponent::~MainComponent() {setLookAndFeel(nullptr); // Reset to default LookAndFeel
+MainComponent::~MainComponent()
+{
+    // Reset the LookAndFeel to avoid dangling pointers
+    setLookAndFeel(nullptr);
 }
 
 void MainComponent::paint(juce::Graphics& g)
