@@ -74,19 +74,19 @@ void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& 
     addAndMakeVisible(dropdown);
     dropdown.setJustificationType(juce::Justification::centredLeft);
 
-    // Use FontOptions to set the font size
-    juce::Font::FontOptions options;
-    options.setHeight(18.0f); // Set font size
-    juce::Font dropdownFont(options);
+    // Set the font for the dropdown menu using FontOptions
+    juce::FontOptions dropdownFontOptions;
+    dropdownFontOptions = dropdownFontOptions.withHeight(18.0f); // Set font height
+    juce::Font dropdownFont(dropdownFontOptions);
     dropdown.setFont(dropdownFont);
 
     addAndMakeVisible(label);
     label.setText(labelText, juce::dontSendNotification);
 
-    // Use FontOptions to set the label font size
-    juce::Font::FontOptions labelOptions;
-    labelOptions.setHeight(18.0f); // Set font size
-    juce::Font labelFont(labelOptions);
+    // Set the font for the label using FontOptions
+    juce::FontOptions labelFontOptions;
+    labelFontOptions = labelFontOptions.withHeight(18.0f); // Set font height
+    juce::Font labelFont(labelFontOptions);
     label.setFont(labelFont);
 
     label.attachToComponent(&dropdown, true);
