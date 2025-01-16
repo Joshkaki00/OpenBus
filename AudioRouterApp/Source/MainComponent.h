@@ -18,6 +18,9 @@ private:
     // Helper functions
     void setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label);
     void populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& deviceNames);
+    void onLoadPlugin();
+    void onSavePreset();
+    void onLoadPreset();
 
     // UI Components
     juce::ComboBox hardwareInputsMenu, virtualInputsMenu, hardwareOutMenu;
