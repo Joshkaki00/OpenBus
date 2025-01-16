@@ -12,7 +12,7 @@ MainComponent::MainComponent()
     setupDropdown(hardwareOutMenu, "Hardware Outputs", hardwareOutLabel);
 
     // Get available device types
-    auto availableDeviceTypes = audioDeviceManager.getAvailableDeviceTypes();
+    auto& availableDeviceTypes = audioDeviceManager.getAvailableDeviceTypes();
 
     // Populate hardware inputs
     for (auto* deviceType : availableDeviceTypes)
