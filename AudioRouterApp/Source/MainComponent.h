@@ -14,12 +14,18 @@ public:
 
     juce::Font getComboBoxFont(juce::ComboBox&) override
     {
-        return juce::Font(18.0f); // Set font size for ComboBox
+        // Use FontOptions to specify font height and style
+        juce::FontOptions options;
+        options = options.withHeight(18.0f); // Set font height
+        return juce::Font(options);
     }
 
     juce::Font getLabelFont(juce::Label&) override
     {
-        return juce::Font(18.0f); // Set font size for Label
+        // Use FontOptions to specify font height and style
+        juce::FontOptions options;
+        options = options.withHeight(18.0f); // Set font height
+        return juce::Font(options);
     }
 };
 
