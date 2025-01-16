@@ -3,7 +3,7 @@
 
 MainComponent::MainComponent()
 {
-    // Initialize the audio device manager
+    // Initialize the audio device manager with default devices
     audioDeviceManager.initialiseWithDefaultDevices(2, 2); // 2 inputs, 2 outputs
 
     // Setup the dropdowns
@@ -17,16 +17,16 @@ MainComponent::MainComponent()
     // Populate hardware inputs
     for (auto* deviceType : availableDeviceTypes)
     {
-        auto deviceNames = deviceType->getDeviceNames(0); // Input devices
+        auto deviceNames = deviceType->getDeviceNames(0); // Get input device names
         populateDropdown(hardwareInputsMenu, deviceNames);
     }
 
-    // Populate virtual inputs and hardware outputs as placeholders
-    // These might require platform-specific APIs or custom configurations
+    // Populate virtual inputs (placeholder names) and hardware outputs
     populateDropdown(virtualInputsMenu, { "Virtual Input 1", "Virtual Input 2" });
-    populateDropdown(hardwareOutMenu, audioDeviceManager.getCurrentAudioDevice()->getOutputChannelNames());
+    if (auto* currentDevice = audioDeviceManager.getCurrentAudioDevice())
+        populateDropdown(hardwareOutMenu, currentDevice->getOutputChannelNames());
 
-    // Add listeners
+    // Add listeners to dropdowns
     hardwareInputsMenu.onChange = [&]() {
         auto selectedInput = hardwareInputsMenu.getText();
         DBG("Selected Hardware Input: " << selectedInput);
@@ -49,12 +49,12 @@ MainComponent::~MainComponent() {}
 
 void MainComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::lightgrey);
+    g.fillAll(juce::Colours::lightgrey); // Background color
 }
 
 void MainComponent::resized()
 {
-    // Set component bounds
+    // Define bounds for layout
     auto area = getLocalBounds().reduced(20);
     auto labelHeight = 20;
     auto dropdownHeight = 30;
@@ -81,7 +81,7 @@ void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& 
 
 void MainComponent::populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& deviceNames)
 {
-    for (auto& name : deviceNames)
+    for (const auto& name : deviceNames)
     {
         dropdown.addItem(name, dropdown.getNumItems() + 1);
     }
