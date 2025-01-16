@@ -42,7 +42,7 @@ MainComponent::MainComponent()
         DBG("Selected Hardware Output: " << selectedOutput);
     };
 
-    setSize(400, 300);
+    setSize(600, 400);
 }
 
 MainComponent::~MainComponent() {}
@@ -74,8 +74,21 @@ void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& 
     addAndMakeVisible(dropdown);
     dropdown.setJustificationType(juce::Justification::centredLeft);
 
+    // Use FontOptions to set the font size
+    juce::Font::FontOptions options;
+    options.setHeight(18.0f); // Set font size
+    juce::Font dropdownFont(options);
+    dropdown.setFont(dropdownFont);
+
     addAndMakeVisible(label);
     label.setText(labelText, juce::dontSendNotification);
+
+    // Use FontOptions to set the label font size
+    juce::Font::FontOptions labelOptions;
+    labelOptions.setHeight(18.0f); // Set font size
+    juce::Font labelFont(labelOptions);
+    label.setFont(labelFont);
+
     label.attachToComponent(&dropdown, true);
 }
 
