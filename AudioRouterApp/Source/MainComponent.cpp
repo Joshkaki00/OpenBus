@@ -3,6 +3,9 @@
 
 MainComponent::MainComponent()
 {
+    customLookAndFeel = std::make_unique<CustomLookAndFeel>();
+    setLookAndFeel(customLookAndFeel.get());
+
     // Initialize the audio device manager with default devices
     audioDeviceManager.initialiseWithDefaultDevices(2, 2); // 2 inputs, 2 outputs
 
@@ -45,7 +48,8 @@ MainComponent::MainComponent()
     setSize(600, 400);
 }
 
-MainComponent::~MainComponent() {}
+MainComponent::~MainComponent() {setLookAndFeel(nullptr); // Reset to default LookAndFeel
+}
 
 void MainComponent::paint(juce::Graphics& g)
 {
