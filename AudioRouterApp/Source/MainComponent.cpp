@@ -80,7 +80,8 @@ void MainComponent::resized()
 void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
 {
     addAndMakeVisible(dropdown);
-    dropdown.setJustificationType(juce::Justification::centredLeft);
+    label.setJustificationType(juce::Justification::centredLeft); // Center the label text
+
 
     addAndMakeVisible(label);
     label.setText(labelText, juce::dontSendNotification);
