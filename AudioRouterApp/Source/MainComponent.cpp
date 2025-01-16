@@ -46,7 +46,7 @@ MainComponent::MainComponent()
         DBG("Selected Hardware Output: " << selectedOutput);
     };
 
-    setSize(600, 400);
+    setSize(1000, 800); // Increased window size
 }
 
 MainComponent::~MainComponent()
