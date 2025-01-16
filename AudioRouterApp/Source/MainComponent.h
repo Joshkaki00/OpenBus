@@ -53,8 +53,8 @@ private:
     juce::Label hardwareInputsLabel{"Hardware Inputs"}, virtualInputsLabel{"Virtual Inputs"}, hardwareOutLabel{"Hardware Outputs"};
     juce::AudioDeviceManager audioDeviceManager;
 
-    // Custom LookAndFeel instance
-    CustomLookAndFeel customLookAndFeel;
+    // Custom LookAndFeel instance managed by a smart pointer
+    std::unique_ptr<CustomLookAndFeel> customLookAndFeel;
 
     // Prevent copy and move
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
