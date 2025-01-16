@@ -74,22 +74,9 @@ void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& 
     addAndMakeVisible(dropdown);
     dropdown.setJustificationType(juce::Justification::centredLeft);
 
-    // Set the font for the dropdown menu using FontOptions
-    juce::FontOptions dropdownFontOptions;
-    dropdownFontOptions = dropdownFontOptions.withHeight(18.0f); // Set font height
-    juce::Font dropdownFont(dropdownFontOptions);
-    dropdown.setFont(dropdownFont);
-
     addAndMakeVisible(label);
     label.setText(labelText, juce::dontSendNotification);
-
-    // Set the font for the label using FontOptions
-    juce::FontOptions labelFontOptions;
-    labelFontOptions = labelFontOptions.withHeight(18.0f); // Set font height
-    juce::Font labelFont(labelFontOptions);
-    label.setFont(labelFont);
-
-    label.attachToComponent(&dropdown, true);
+    label.attachToComponent(&dropdown, true); // Attach the label to the dropdown
 }
 
 void MainComponent::populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& deviceNames)
