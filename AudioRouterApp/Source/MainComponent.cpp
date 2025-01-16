@@ -63,9 +63,9 @@ void MainComponent::paint(juce::Graphics& g)
 void MainComponent::resized()
 {
     // Define bounds for layout
-    auto area = getLocalBounds().reduced(20);
-    auto labelHeight = 20;
-    auto dropdownHeight = 40; // Increase the dropdown height for better fit
+    auto area = getLocalBounds().reduced(30);
+    auto labelHeight = 30;
+    auto dropdownHeight = 60; // Increase the dropdown height for better fit
 
     hardwareInputsLabel.setBounds(area.removeFromTop(labelHeight));
     hardwareInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 10)); // Add padding
