@@ -65,16 +65,16 @@ void MainComponent::resized()
     // Define bounds for layout
     auto area = getLocalBounds().reduced(20);
     auto labelHeight = 20;
-    auto dropdownHeight = 30;
+    auto dropdownHeight = 40; // Increase the dropdown height for better fit
 
     hardwareInputsLabel.setBounds(area.removeFromTop(labelHeight));
-    hardwareInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 10));
+    hardwareInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 10)); // Add padding
 
     virtualInputsLabel.setBounds(area.removeFromTop(labelHeight));
-    virtualInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 10));
+    virtualInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 10)); // Add padding
 
     hardwareOutLabel.setBounds(area.removeFromTop(labelHeight));
-    hardwareOutMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 10));
+    hardwareOutMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 10)); // Add padding
 }
 
 void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
