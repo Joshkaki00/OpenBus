@@ -24,6 +24,28 @@ MainComponent::~MainComponent()
     setLookAndFeel(nullptr);
 }
 
+void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
+{
+    addAndMakeVisible(dropdown);
+    dropdown.setJustificationType(juce::Justification::centredLeft);
+
+    addAndMakeVisible(label);
+    label.setText(labelText, juce::dontSendNotification);
+    label.attachToComponent(&dropdown, true);
+}
+
+void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
+{
+    if (source == &audioDeviceManager)
+    {
+        if (auto* currentDevice = audioDeviceManager.getCurrentAudioDevice())
+        {
+            populateDropdown(hardwareInputsMenu, currentDevice->getInputChannelNames());
+            populateDropdown(hardwareOutMenu, currentDevice->getOutputChannelNames());
+        }
+    }
+}
+
 void MainComponent::scanForPlugins()
 {
     scannedPlugins.clear();
