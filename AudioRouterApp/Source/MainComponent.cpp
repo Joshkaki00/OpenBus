@@ -3,96 +3,58 @@
 
 MainComponent::MainComponent()
 {
-    // Initialize LookAndFeel
     setLookAndFeel(&customLookAndFeel);
-
-    // Initialize AudioDeviceManager
     audioDeviceManager.initialiseWithDefaultDevices(2, 2);
-
-    // Register MainComponent as a listener
     audioDeviceManager.addChangeListener(this);
 
-    // Setup dropdowns
     setupDropdown(hardwareInputsMenu, "Hardware Inputs", hardwareInputsLabel);
     setupDropdown(hardwareOutMenu, "Hardware Outputs", hardwareOutLabel);
     setupDropdown(pluginDropdown, "Plugins", pluginLabel);
 
-    // Add the Scan Plugins button
     addAndMakeVisible(scanPluginsButton);
     scanPluginsButton.onClick = [this]() { scanForPlugins(); };
 
-    // Populate dropdowns with initial device names
     changeListenerCallback(&audioDeviceManager);
-
     setSize(600, 500);
 }
 
 MainComponent::~MainComponent()
 {
-    // Remove MainComponent as a listener
     audioDeviceManager.removeChangeListener(this);
-
-    // Reset LookAndFeel
     setLookAndFeel(nullptr);
-}
-
-void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
-{
-    if (source == &audioDeviceManager)
-    {
-        // Get the current device and update dropdowns
-        if (auto* currentDevice = audioDeviceManager.getCurrentAudioDevice())
-        {
-            populateDropdown(hardwareInputsMenu, currentDevice->getInputChannelNames());
-            populateDropdown(hardwareOutMenu, currentDevice->getOutputChannelNames());
-        }
-    }
-}
-
-void MainComponent::populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& items)
-{
-    dropdown.clear();
-    for (int i = 0; i < items.size(); ++i)
-        dropdown.addItem(items[i], i + 1);
-
-    if (items.isEmpty())
-        dropdown.addItem("No devices available", 1);
-}
-
-void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
-{
-    addAndMakeVisible(dropdown);
-    dropdown.setJustificationType(juce::Justification::centredLeft);
-
-    addAndMakeVisible(label);
-    label.setText(labelText, juce::dontSendNotification);
-    label.attachToComponent(&dropdown, true);
 }
 
 void MainComponent::scanForPlugins()
 {
     scannedPlugins.clear();
 
+    // Updated Plugin Directory Paths
     juce::Array<juce::File> pluginDirectories = {
-        juce::File("/Library/Audio/Plug-Ins/VST"),
-        juce::File("/Library/Audio/Plug-Ins/VST3"),
-        juce::File("/Library/Audio/Plug-Ins/Components")
+        juce::File("/Library/Audio/Plug-Ins/VST"),          // macOS
+        juce::File("/Library/Audio/Plug-Ins/VST3"),         // macOS
+        juce::File("/Library/Audio/Plug-Ins/Components"),   // macOS
+        juce::File("~/.vst"),                               // Linux
+        juce::File("/usr/lib/vst"),                         // Linux
+        juce::File("/usr/local/lib/vst")                    // Linux
     };
 
-    juce::StringArray supportedExtensions = { ".vst", ".vst3", ".component" };
+    juce::StringArray supportedExtensions = { ".vst", ".vst3", ".component", ".so" }; // Added Linux extension
 
     for (const auto& dir : pluginDirectories)
     {
         if (dir.isDirectory())
         {
+            DBG("Scanning directory: " << dir.getFullPathName());
+
             auto files = dir.findChildFiles(juce::File::findFiles, true);
             for (const auto& file : files)
             {
+                DBG("Found file: " << file.getFullPathName());
+
                 if (supportedExtensions.contains(file.getFileExtension()))
                 {
                     try
                     {
-                        // Validate plugin here before adding to the list
                         if (validatePlugin(file))
                             scannedPlugins.add(file.getFullPathName());
                         else
@@ -109,20 +71,22 @@ void MainComponent::scanForPlugins()
                 }
             }
         }
+        else
+        {
+            DBG("Directory not found: " << dir.getFullPathName());
+        }
     }
 
-    // Update the plugin dropdown
     populatePluginDropdown();
 }
 
 bool MainComponent::validatePlugin(const juce::File& file)
 {
     juce::AudioPluginFormatManager formatManager;
-    formatManager.addDefaultFormats(); // Register available plugin formats
+    formatManager.addDefaultFormats();
 
     juce::OwnedArray<juce::PluginDescription> pluginDescriptions;
 
-    // Scan for plugin descriptions in the file
     for (auto* format : formatManager.getFormats())
     {
         if (format->fileMightContainThisPluginType(file.getFullPathName()))
@@ -147,6 +111,7 @@ void MainComponent::populatePluginDropdown()
 
     if (scannedPlugins.isEmpty())
     {
+        DBG("No plugins found.");
         pluginDropdown.addItem("No plugins found", 1);
     }
     else
