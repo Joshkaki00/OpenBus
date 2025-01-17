@@ -45,11 +45,20 @@ private:
     // Helper functions
     void setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label);
     void populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& items);
+    void scanForPlugins();
+    void populatePluginDropdown();
 
     // UI Components
-    juce::ComboBox hardwareInputsMenu, hardwareOutMenu;
-    juce::Label hardwareInputsLabel{"Hardware Inputs"}, hardwareOutLabel{"Hardware Outputs"};
+    juce::ComboBox hardwareInputsMenu, hardwareOutMenu, pluginDropdown;
+    juce::Label hardwareInputsLabel{"Hardware Inputs"}, hardwareOutLabel{"Hardware Outputs"}, pluginLabel{"Plugins"};
+    juce::TextButton scanPluginsButton{"Scan Plugins"};
     juce::AudioDeviceManager audioDeviceManager;
+
+    // Plugin scanning
+    juce::StringArray scannedPlugins;
+
+    // Custom LookAndFeel instance
+    CustomLookAndFeel customLookAndFeel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
