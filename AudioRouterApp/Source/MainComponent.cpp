@@ -74,6 +74,9 @@ void MainComponent::scanForPlugins()
     juce::AudioPluginFormatManager pluginFormatManager;
     pluginFormatManager.addDefaultFormats(); // Adds AU, VST, VST3 formats by default
 
+    // List of valid plugin file extensions
+    juce::StringArray validExtensions { "vst", "vst3", "component" };
+
     for (const auto& directory : pluginDirectories)
     {
         if (!directory.isDirectory())
@@ -89,8 +92,8 @@ void MainComponent::scanForPlugins()
         {
             DBG("Scanning file: " << file.getFile().getFileName());
 
-            // Check for plugin validity
-            if (file.getFile().hasFileExtension({"vst", "vst3", "component"}))
+            // Check for plugin validity using StringArray
+            if (file.getFile().hasFileExtension(validExtensions))
             {
                 DBG("Found potential plugin: " << file.getFile().getFullPathName());
 
