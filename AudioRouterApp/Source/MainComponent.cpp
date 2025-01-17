@@ -121,35 +121,27 @@ void MainComponent::scanForPlugins()
 bool MainComponent::validatePlugin(const juce::File& file)
 {
     juce::AudioPluginFormatManager formatManager;
-    formatManager.addDefaultFormats(); // Add all supported plugin formats
+    formatManager.addDefaultFormats(); // Register available plugin formats
 
-    juce::PluginDescription description;
-    juce::String errorMessage;
+    juce::OwnedArray<juce::PluginDescription> pluginDescriptions;
 
-    // Find the correct format for the plugin
+    // Scan for plugin descriptions in the file
     for (auto* format : formatManager.getFormats())
     {
         if (format->fileMightContainThisPluginType(file.getFullPathName()))
         {
-            if (format->getPluginDescriptionFor(description, file, errorMessage))
-            {
-                // Try creating an instance of the plugin
-                auto plugin = format->createPluginInstance(description, 44100.0, 512, errorMessage);
-
-                if (plugin == nullptr)
-                {
-                    DBG("Plugin validation failed: " << errorMessage);
-                    return false;
-                }
-
-                DBG("Plugin validation succeeded for: " << description.name);
-                return true;
-            }
+            format->findAllTypesForFile(pluginDescriptions, file.getFullPathName());
         }
     }
 
-    DBG("No matching plugin format found for: " << file.getFullPathName());
-    return false;
+    if (pluginDescriptions.isEmpty())
+    {
+        DBG("No valid plugin descriptions found for: " << file.getFullPathName());
+        return false;
+    }
+
+    DBG("Valid plugin found: " << pluginDescriptions[0]->name);
+    return true;
 }
 
 void MainComponent::populatePluginDropdown()
