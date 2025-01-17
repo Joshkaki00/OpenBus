@@ -7,7 +7,7 @@ MainComponent::MainComponent()
     setLookAndFeel(&customLookAndFeel);
 
     // Initialize AudioDeviceManager
-    audioDeviceManager.initialise(2, 2, nullptr, true, {}, nullptr);
+    audioDeviceManager.initialiseWithDefaultDevices(2, 2);
 
     // Register MainComponent as a listener
     audioDeviceManager.addChangeListener(this);
