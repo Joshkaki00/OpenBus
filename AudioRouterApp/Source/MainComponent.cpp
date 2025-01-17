@@ -46,6 +46,16 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
     }
 }
 
+void MainComponent::populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& items)
+{
+    dropdown.clear();
+    for (int i = 0; i < items.size(); ++i)
+        dropdown.addItem(items[i], i + 1);
+
+    if (items.isEmpty())
+        dropdown.addItem("No devices available", 1);
+}
+
 void MainComponent::scanForPlugins()
 {
     scannedPlugins.clear();
