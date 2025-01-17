@@ -40,10 +40,14 @@ public:
 
 private:
     // Helper functions
+    void setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label);
+    void populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& deviceNames);
     void scanForPlugins();
     void populateDropdownWithPlugins();
 
     // UI Components
+    juce::ComboBox hardwareInputsMenu, virtualInputsMenu, hardwareOutMenu;
+    juce::Label hardwareInputsLabel{"Hardware Inputs"}, virtualInputsLabel{"Virtual Inputs"}, hardwareOutLabel{"Hardware Outputs"};
     juce::ComboBox pluginListMenu;
     juce::Label pluginListLabel{"Available Plugins"};
     juce::TextButton scanPluginsButton{"Scan Plugins"};

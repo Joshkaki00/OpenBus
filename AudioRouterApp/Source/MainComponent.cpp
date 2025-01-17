@@ -7,6 +7,23 @@ MainComponent::MainComponent()
     customLookAndFeel = std::make_unique<CustomLookAndFeel>();
     setLookAndFeel(customLookAndFeel.get());
 
+    // Setup the hardware dropdowns
+    setupDropdown(hardwareInputsMenu, "Hardware Inputs", hardwareInputsLabel);
+    setupDropdown(virtualInputsMenu, "Virtual Inputs", virtualInputsLabel);
+    setupDropdown(hardwareOutMenu, "Hardware Outputs", hardwareOutLabel);
+
+    // Populate hardware inputs
+    juce::StringArray hardwareInputs = { "Mic 1", "Mic 2", "Line In" }; // Example list
+    populateDropdown(hardwareInputsMenu, hardwareInputs);
+
+    // Populate virtual inputs
+    juce::StringArray virtualInputs = { "Virtual Input 1", "Virtual Input 2" }; // Example list
+    populateDropdown(virtualInputsMenu, virtualInputs);
+
+    // Populate hardware outputs
+    juce::StringArray hardwareOutputs = { "Speakers", "Headphones", "Line Out" }; // Example list
+    populateDropdown(hardwareOutMenu, hardwareOutputs);
+
     // Setup the plugin list dropdown
     addAndMakeVisible(pluginListMenu);
     pluginListLabel.setJustificationType(juce::Justification::centredTop);
@@ -16,7 +33,7 @@ MainComponent::MainComponent()
     addAndMakeVisible(scanPluginsButton);
     scanPluginsButton.onClick = [this]() { scanForPlugins(); };
 
-    setSize(600, 400);
+    setSize(600, 500); // Increased window size
 }
 
 MainComponent::~MainComponent()
@@ -35,11 +52,46 @@ void MainComponent::resized()
     auto labelHeight = 20;
     auto dropdownHeight = 40;
     auto buttonHeight = 30;
+    auto verticalSpacing = 10;
 
-    // Layout the components
+    // Layout hardware inputs
+    hardwareInputsLabel.setBounds(area.removeFromTop(labelHeight));
+    hardwareInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
+    area.removeFromTop(verticalSpacing);
+
+    // Layout virtual inputs
+    virtualInputsLabel.setBounds(area.removeFromTop(labelHeight));
+    virtualInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
+    area.removeFromTop(verticalSpacing);
+
+    // Layout hardware outputs
+    hardwareOutLabel.setBounds(area.removeFromTop(labelHeight));
+    hardwareOutMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
+    area.removeFromTop(verticalSpacing);
+
+    // Layout plugin list
     pluginListLabel.setBounds(area.removeFromTop(labelHeight));
     pluginListMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
+    area.removeFromTop(verticalSpacing);
+
+    // Layout scan button
     scanPluginsButton.setBounds(area.removeFromTop(buttonHeight).reduced(0, 5));
+}
+
+void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
+{
+    addAndMakeVisible(dropdown);
+    label.setJustificationType(juce::Justification::centredLeft);
+    addAndMakeVisible(label);
+    label.setText(labelText, juce::dontSendNotification);
+}
+
+void MainComponent::populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& deviceNames)
+{
+    for (const auto& name : deviceNames)
+    {
+        dropdown.addItem(name, dropdown.getNumItems() + 1);
+    }
 }
 
 void MainComponent::scanForPlugins()
@@ -67,7 +119,7 @@ void MainComponent::scanForPlugins()
             {
                 if (supportedExtensions.contains(file.getFileExtension()))
                 {
-                    scannedPlugins.add(file.getFullPathName());
+                    scannedPlugins.add(file.getFileName());
                 }
             }
         }
