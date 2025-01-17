@@ -1,11 +1,15 @@
 #include "MainComponent.h"
 #include "AudioEngine.h"
+#include <juce_audio_devices/juce_audio_devices.h>
 
 MainComponent::MainComponent()
 {
     // Initialize LookAndFeel
     customLookAndFeel = std::make_unique<CustomLookAndFeel>();
     setLookAndFeel(customLookAndFeel.get());
+    
+    // Initialize audio device manager
+    audioDeviceManager.initialiseWithDefaultDevices(2, 2); // 2 inputs, 2 outputs
 
     // Setup hardware input/output dropdowns
     setupDropdown(hardwareInputsMenu, "Hardware Inputs", hardwareInputsLabel);

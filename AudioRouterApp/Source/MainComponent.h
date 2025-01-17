@@ -51,6 +51,8 @@ private:
     juce::ComboBox pluginListMenu;
     juce::Label pluginListLabel{"Available Plugins"};
     juce::TextButton scanPluginsButton{"Scan Plugins"};
+    
+    juce::AudioDeviceManager audioDeviceManager;
 
     // List of scanned plugins
     juce::StringArray scannedPlugins;
