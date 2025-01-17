@@ -79,44 +79,37 @@ void MainComponent::scanForPlugins()
         juce::File("/usr/local/lib/vst")                    // Linux
     };
 
-    juce::StringArray supportedExtensions = { ".vst", ".vst3", ".component", ".so" }; // Added Linux extension
-
     for (const auto& dir : pluginDirectories)
     {
-        if (dir.isDirectory())
+        if (!dir.isDirectory())
         {
-            DBG("Scanning directory: " << dir.getFullPathName());
-            auto files = dir.findChildFiles(juce::File::findFiles, true);
+            DBG("Directory not found: " << dir.getFullPathName());
+            continue;
+        }
 
-            DBG("Number of potential plugin bundles found: " << files.size());
+        DBG("Scanning directory: " << dir.getFullPathName());
+        auto files = dir.findChildFiles(juce::File::findFiles, false); // Non-recursive
 
-            for (const auto& file : files)
+        for (const auto& file : files)
+        {
+            if (file.hasFileExtension({ ".vst", ".vst3", ".component" }))
             {
-                DBG("Found file: " << file.getFullPathName());
+                DBG("Found plugin bundle: " << file.getFullPathName());
 
-                if (supportedExtensions.contains(file.getFileExtension()))
+                if (validatePlugin(file))
                 {
-                    DBG("File extension matches supported formats: " << file.getFileExtension());
-
-                    if (validatePlugin(file))
-                    {
-                        scannedPlugins.add(file.getFullPathName());
-                        DBG("Plugin added to list: " << file.getFullPathName());
-                    }
-                    else
-                    {
-                        DBG("Invalid plugin: " << file.getFullPathName());
-                    }
+                    scannedPlugins.add(file.getFullPathName());
+                    DBG("Plugin added to list: " << file.getFullPathName());
                 }
                 else
                 {
-                    DBG("Skipping unsupported file: " << file.getFullPathName());
+                    DBG("Invalid plugin: " << file.getFullPathName());
                 }
             }
-        }
-        else
-        {
-            DBG("Directory not found: " << dir.getFullPathName());
+            else
+            {
+                DBG("Skipping unsupported file: " << file.getFullPathName());
+            }
         }
     }
 
