@@ -28,19 +28,18 @@ public:
 };
 
 class MainComponent : public juce::Component,
-                      public juce::AudioDeviceManager::Listener
+                      public juce::AudioDeviceManager::Listener // Implement listener
 {
 public:
-    // Constructor and Destructor
     MainComponent();
     ~MainComponent() override;
 
-    // Component Overrides
+    // Component overrides
     void paint(juce::Graphics&) override;
     void resized() override;
 
-    // AudioDeviceManager Listener
-    void audioDeviceListChanged() override; // Triggered on device change
+    // AudioDeviceManager listener method
+    void audioDeviceListChanged() override;
 
 private:
     // Helper functions
@@ -52,6 +51,5 @@ private:
     juce::Label hardwareInputsLabel{"Hardware Inputs"}, hardwareOutLabel{"Hardware Outputs"};
     juce::AudioDeviceManager audioDeviceManager;
 
-    // Prevent copy and move
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
