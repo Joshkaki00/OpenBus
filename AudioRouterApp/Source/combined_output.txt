@@ -147,6 +147,7 @@ private:
 <key>NSMicrophoneUsageDescription</key>
 <string>This app requires access to the microphone for audio routing.</string>
 #include "AudioEngine.h"
+#include <JuceHeader.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "MainComponent.h"
 
@@ -155,12 +156,13 @@ class AudioRouterApp : public juce::JUCEApplication
 {
 public:
     const juce::String getApplicationName() override { return "AudioRouterApp"; }
-    const juce::String getApplicationVersion() override { return "1.0.0"; }
+    const juce::String getApplicationVersion() override { return "0.0.1"; }
+    bool moreThanOneInstanceAllowed() override { return true; }
 
-    void initialise(const juce::String&) override
+    void initialise(const juce::String& commandLine) override
     {
-        
         mainWindow.reset(new MainWindow("AudioRouterApp", new MainComponent(), *this));
+        
     }
 
     void shutdown() override
@@ -172,139 +174,284 @@ private:
     class MainWindow : public juce::DocumentWindow
     {
     public:
-        MainWindow(const juce::String& name, juce::Component* c, juce::JUCEApplication& app)
-            : juce::DocumentWindow(name, juce::Colours::lightgrey, juce::DocumentWindow::allButtons),
-              application(app)
+        MainWindow(const juce::String& name, juce::Component* c, JUCEApplication& app)
+            : DocumentWindow(name, juce::Colours::lightgrey, DocumentWindow::allButtons),
+              owner(app)
         {
             setUsingNativeTitleBar(true);
             setContentOwned(c, true);
-            setResizable(true, true);
             centreWithSize(getWidth(), getHeight());
             setVisible(true);
         }
 
         void closeButtonPressed() override
         {
-            application.systemRequestedQuit();
+            JUCEApplication::getInstance()->systemRequestedQuit();
         }
 
     private:
-        juce::JUCEApplication& application;
+            JUCEApplication& owner;
+
+            JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
     };
 
-    std::unique_ptr<juce::DocumentWindow> mainWindow;
+        std::unique_ptr<MainWindow> mainWindow;
 };
 
+// Start the JUCE application
 START_JUCE_APPLICATION(AudioRouterApp)
 #include "MainComponent.h"
 #include "AudioEngine.h"
 
 MainComponent::MainComponent()
 {
-    loadPluginButton.onClick = [this]() { onLoadPlugin(); };
-    savePresetButton.onClick = [this]() { onSavePreset(); };
-    loadPresetButton.onClick = [this]() { onLoadPreset(); };
+    // Initialize LookAndFeel
+    setLookAndFeel(&customLookAndFeel);
 
-    addAndMakeVisible(loadPluginButton);
-    addAndMakeVisible(savePresetButton);
-    addAndMakeVisible(loadPresetButton);
+    // Initialize AudioDeviceManager
+    audioDeviceManager.initialiseWithDefaultDevices(2, 2);
 
-    setSize(600, 400);
+    // Register MainComponent as a listener
+    audioDeviceManager.addChangeListener(this);
+
+    // Setup dropdowns
+    setupDropdown(hardwareInputsMenu, "Hardware Inputs", hardwareInputsLabel);
+    setupDropdown(hardwareOutMenu, "Hardware Outputs", hardwareOutLabel);
+    setupDropdown(pluginDropdown, "Plugins", pluginLabel);
+
+    // Add the Scan Plugins button
+    addAndMakeVisible(scanPluginsButton);
+    scanPluginsButton.onClick = [this]() { scanForPlugins(); };
+
+    // Populate dropdowns with initial device names
+    changeListenerCallback(&audioDeviceManager);
+
+    setSize(600, 500);
+}
+
+MainComponent::~MainComponent()
+{
+    // Remove MainComponent as a listener
+    audioDeviceManager.removeChangeListener(this);
+
+    // Reset LookAndFeel
+    setLookAndFeel(nullptr);
+}
+
+void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
+{
+    if (source == &audioDeviceManager)
+    {
+        // Get the current device and update dropdowns
+        if (auto* currentDevice = audioDeviceManager.getCurrentAudioDevice())
+        {
+            populateDropdown(hardwareInputsMenu, currentDevice->getInputChannelNames());
+            populateDropdown(hardwareOutMenu, currentDevice->getOutputChannelNames());
+        }
+    }
+}
+
+void MainComponent::populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& items)
+{
+    dropdown.clear();
+    for (int i = 0; i < items.size(); ++i)
+        dropdown.addItem(items[i], i + 1);
+
+    if (items.isEmpty())
+        dropdown.addItem("No devices available", 1);
+}
+
+void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
+{
+    addAndMakeVisible(dropdown);
+    dropdown.setJustificationType(juce::Justification::centredLeft);
+
+    addAndMakeVisible(label);
+    label.setText(labelText, juce::dontSendNotification);
+    label.attachToComponent(&dropdown, true);
+}
+
+void MainComponent::scanForPlugins()
+{
+    scannedPlugins.clear();
+
+    juce::Array<juce::File> pluginDirectories = {
+        juce::File("/Library/Audio/Plug-Ins/VST"),
+        juce::File("/Library/Audio/Plug-Ins/VST3"),
+        juce::File("/Library/Audio/Plug-Ins/Components")
+    };
+
+    juce::StringArray supportedExtensions = { ".vst", ".vst3", ".component" };
+
+    for (const auto& dir : pluginDirectories)
+    {
+        if (dir.isDirectory())
+        {
+            auto files = dir.findChildFiles(juce::File::findFiles, true);
+            for (const auto& file : files)
+            {
+                if (supportedExtensions.contains(file.getFileExtension()))
+                {
+                    try
+                    {
+                        // Validate plugin here before adding to the list
+                        if (validatePlugin(file))
+                            scannedPlugins.add(file.getFullPathName());
+                        else
+                            DBG("Invalid plugin: " << file.getFullPathName());
+                    }
+                    catch (const std::exception& e)
+                    {
+                        DBG("Error loading plugin: " << file.getFullPathName() << " - " << e.what());
+                    }
+                    catch (...)
+                    {
+                        DBG("Unknown error loading plugin: " << file.getFullPathName());
+                    }
+                }
+            }
+        }
+    }
+
+    // Update the plugin dropdown
+    populatePluginDropdown();
+}
+
+bool MainComponent::validatePlugin(const juce::File& file)
+{
+    juce::AudioPluginFormatManager formatManager;
+    formatManager.addDefaultFormats(); // Register available plugin formats
+
+    juce::OwnedArray<juce::PluginDescription> pluginDescriptions;
+
+    // Scan for plugin descriptions in the file
+    for (auto* format : formatManager.getFormats())
+    {
+        if (format->fileMightContainThisPluginType(file.getFullPathName()))
+        {
+            format->findAllTypesForFile(pluginDescriptions, file.getFullPathName());
+        }
+    }
+
+    if (pluginDescriptions.isEmpty())
+    {
+        DBG("No valid plugin descriptions found for: " << file.getFullPathName());
+        return false;
+    }
+
+    DBG("Valid plugin found: " << pluginDescriptions[0]->name);
+    return true;
+}
+
+void MainComponent::populatePluginDropdown()
+{
+    pluginDropdown.clear();
+
+    if (scannedPlugins.isEmpty())
+    {
+        pluginDropdown.addItem("No plugins found", 1);
+    }
+    else
+    {
+        for (int i = 0; i < scannedPlugins.size(); ++i)
+        {
+            pluginDropdown.addItem(scannedPlugins[i], i + 1);
+        }
+    }
+}
+
+void MainComponent::paint(juce::Graphics& g)
+{
+    g.fillAll(juce::Colours::lightgrey);
 }
 
 void MainComponent::resized()
 {
-    auto area = getLocalBounds().reduced(10);
+    auto area = getLocalBounds().reduced(20);
+    auto labelHeight = 20;
+    auto dropdownHeight = 30;
     auto buttonHeight = 40;
+    auto spacing = 10;
 
-    loadPluginButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
-    savePresetButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
-    loadPresetButton.setBounds(area.removeFromTop(buttonHeight).reduced(5));
-}
+    hardwareInputsLabel.setBounds(area.removeFromTop(labelHeight));
+    hardwareInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
+    area.removeFromTop(spacing);
 
-void MainComponent::onLoadPlugin()
-{
-    juce::FileChooser chooser("Select a plugin to load...", {}, "*.vst3;*.vst;*.component");
-    chooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-        [this](const juce::FileChooser& fc)
-        {
-            auto file = fc.getResult();
-            if (file.existsAsFile())
-            {
-                if (!AudioEngine::getInstance().loadPlugin(file))
-                {
-                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                        "Error",
-                        "Failed to load plugin.");
-                }
-            }
-        });
-}
+    hardwareOutLabel.setBounds(area.removeFromTop(labelHeight));
+    hardwareOutMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
+    area.removeFromTop(spacing);
 
-void MainComponent::onSavePreset()
-{
-    juce::FileChooser chooser("Save Preset...", {}, "*.preset");
-    chooser.launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
-        [this](const juce::FileChooser& fc)
-        {
-            auto file = fc.getResult();
-            if (file.existsAsFile())
-            {
-                if (!AudioEngine::getInstance().savePreset(file))
-                {
-                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                        "Error",
-                        "Failed to save preset.");
-                }
-            }
-        });
-}
+    pluginLabel.setBounds(area.removeFromTop(labelHeight));
+    pluginDropdown.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
+    area.removeFromTop(spacing);
 
-void MainComponent::onLoadPreset()
-{
-    juce::FileChooser chooser("Load Preset...", {}, "*.preset");
-    chooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-        [this](const juce::FileChooser& fc)
-        {
-            auto file = fc.getResult();
-            if (file.existsAsFile())
-            {
-                if (!AudioEngine::getInstance().loadPreset(file))
-                {
-                    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                        "Error",
-                        "Failed to load preset.");
-                }
-            }
-        });
+    scanPluginsButton.setBounds(area.removeFromTop(buttonHeight).reduced(0, 5));
 }
 #pragma once
 
 #include <JuceHeader.h>
 #include "AudioEngine.h"
 
-class MainComponent : public juce::Component
+// Custom LookAndFeel class to customize fonts
+class CustomLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
-    // Constructor and Destructor
-    MainComponent();
-    ~MainComponent() override = default;
+    CustomLookAndFeel()
+    {
+        setDefaultSansSerifTypefaceName("Arial");
+    }
 
-    // Component Overrides
+    juce::Font getComboBoxFont(juce::ComboBox&) override
+    {
+        juce::FontOptions options;
+        options = options.withHeight(18.0f);
+        return juce::Font(options);
+    }
+
+    juce::Font getLabelFont(juce::Label&) override
+    {
+        juce::FontOptions options;
+        options = options.withHeight(18.0f);
+        return juce::Font(options);
+    }
+};
+
+class MainComponent : public juce::Component,
+                      public juce::ChangeListener
+{
+public:
+    MainComponent();
+    ~MainComponent() override;
+
+    // Component overrides
+    void paint(juce::Graphics&) override;
     void resized() override;
 
+    // ChangeListener override
+    void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+
 private:
-    // Button click handlers
-    void onLoadPlugin();
-    void onSavePreset();
-    void onLoadPreset();
+    // Helper functions
+    void setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label);
+    void populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& items);
+    void scanForPlugins();                         // Scan for plugins in specified directories
+    void populatePluginDropdown();                 // Populate dropdown with plugins
+    bool validatePlugin(const juce::File& file);   // Validate the plugin file
 
     // UI Components
-    juce::TextButton loadPluginButton{"Load Plugin"};
-    juce::TextButton savePresetButton{"Save Preset"};
-    juce::TextButton loadPresetButton{"Load Preset"};
+    juce::ComboBox hardwareInputsMenu, hardwareOutMenu, pluginDropdown; // Added `pluginDropdown`
+    juce::Label hardwareInputsLabel{"Hardware Inputs"},
+                hardwareOutLabel{"Hardware Outputs"},
+                pluginLabel{"Plugins"};            // Added `pluginLabel`
+    juce::TextButton scanPluginsButton{"Scan Plugins"};
+    juce::AudioDeviceManager audioDeviceManager;
 
-    // Prevent copy and move
+    // Custom LookAndFeel
+    CustomLookAndFeel customLookAndFeel;           // Added `customLookAndFeel`
+
+    // Scanned plugins
+    juce::StringArray scannedPlugins;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
 #include "ZeroMQServer.h"
