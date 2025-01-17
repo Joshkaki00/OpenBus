@@ -28,7 +28,7 @@ public:
 };
 
 class MainComponent : public juce::Component,
-                      public juce::ChangeListener // Use ChangeListener for device updates
+                      public juce::ChangeListener
 {
 public:
     MainComponent();
@@ -50,7 +50,7 @@ private:
     bool validatePlugin(const juce::File& file);   // Validate the plugin file
 
     // UI Components
-    juce::ComboBox hardwareInputsMenu, hardwareOutMenu, pluginListMenu;
+    juce::ComboBox hardwareInputsMenu, hardwareOutMenu, pluginDropdown; // Added `pluginDropdown`
     juce::Label hardwareInputsLabel{"Hardware Inputs"},
                 hardwareOutLabel{"Hardware Outputs"},
                 pluginListLabel{"Available Plugins"};
