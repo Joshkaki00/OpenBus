@@ -52,6 +52,7 @@ private:
     juce::ComboBox hardwareInputsMenu, virtualInputsMenu, hardwareOutMenu;
     juce::Label hardwareInputsLabel{"Hardware Inputs"}, virtualInputsLabel{"Virtual Inputs"}, hardwareOutLabel{"Hardware Outputs"};
     juce::AudioDeviceManager audioDeviceManager;
+    juce::TextButton loadPluginButton{"Load Plugin"};
 
     // Custom LookAndFeel instance managed by a smart pointer
     std::unique_ptr<CustomLookAndFeel> customLookAndFeel;

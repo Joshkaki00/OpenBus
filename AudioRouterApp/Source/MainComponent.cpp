@@ -14,6 +14,10 @@ MainComponent::MainComponent()
     setupDropdown(hardwareInputsMenu, "Hardware Inputs", hardwareInputsLabel);
     setupDropdown(virtualInputsMenu, "Virtual Inputs", virtualInputsLabel);
     setupDropdown(hardwareOutMenu, "Hardware Outputs", hardwareOutLabel);
+    
+    // Add the "Load Plugin" button
+    addAndMakeVisible(loadPluginButton);
+    loadPluginButton.onClick = [this]() { onLoadPlugin(); };
 
     // Get available device types
     auto& availableDeviceTypes = audioDeviceManager.getAvailableDeviceTypes();
@@ -66,6 +70,7 @@ void MainComponent::resized()
     auto area = getLocalBounds().reduced(20);
     auto labelHeight = 20;
     auto dropdownHeight = 50; // Increase the dropdown height for better fit
+    auto buttonHeight = 40;
     auto verticalSpacing = 10; // Space between each set of label and dropdown
 
     // Layout hardware inputs
@@ -81,6 +86,9 @@ void MainComponent::resized()
     // Layout hardware outputs
     hardwareOutLabel.setBounds(area.removeFromTop(labelHeight));
     hardwareOutMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
+    
+    // Layout the "Load Plugin" button
+    loadPluginButton.setBounds(area.removeFromTop(buttonHeight));
 }
 
 void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
