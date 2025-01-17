@@ -13,16 +13,8 @@ public:
 
     void initialise(const juce::String& commandLine) override
     {
-        if (commandLine.isNotEmpty())
-        {
-            // Run in command-line mode
-            runCommandLineMode(commandLine);
-        }
-        else
-        {
-            // Start GUI mode
-            mainWindow.reset(new MainWindow("AudioRouterApp", new MainComponent(), *this));
-        }
+        mainWindow.reset(new MainWindow("AudioRouterApp", new MainComponent(), *this));
+        
     }
 
     void shutdown() override
@@ -50,45 +42,12 @@ private:
         }
 
     private:
-        JUCEApplication& owner;
+            JUCEApplication& owner;
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
+            JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
     };
 
-    std::unique_ptr<MainWindow> mainWindow;
-
-    void runCommandLineMode(const juce::String& commandLine)
-    {
-        DBG("Running in command-line mode");
-        DBG("Arguments: " << commandLine);
-
-        // Parse command-line arguments
-        juce::StringArray args = juce::StringArray::fromTokens(commandLine, true);
-
-        if (args.contains("--help"))
-        {
-            DBG("Usage: AudioRouterApp [options]");
-            DBG("--help: Show this help message");
-            DBG("--load-plugin <path>: Load a plugin at the specified path");
-        }
-        else if (args.contains("--load-plugin"))
-        {
-            int index = args.indexOf("--load-plugin");
-            if (index + 1 < args.size())
-            {
-                juce::String pluginPath = args[index + 1];
-                DBG("Loading plugin: " << pluginPath);
-                // Add your plugin-loading logic here
-            }
-            else
-            {
-                DBG("Error: Missing plugin path");
-            }
-        }
-
-        // Quit after execution
-        JUCEApplication::getInstance()->systemRequestedQuit();
-    }
+        std::unique_ptr<MainWindow> mainWindow;
 };
 
 // Start the JUCE application
