@@ -60,52 +60,56 @@ void MainComponent::scanForPlugins()
 {
     scannedPlugins.clear();
 
-    // Updated Plugin Directory Paths
     juce::Array<juce::File> pluginDirectories = {
-        juce::File("/Library/Audio/Plug-Ins/VST"),          // macOS
-        juce::File("/Library/Audio/Plug-Ins/VST3"),         // macOS
-        juce::File("/Library/Audio/Plug-Ins/Components"),   // macOS
-        juce::File("~/.vst"),                               // Linux
-        juce::File("/usr/lib/vst"),                         // Linux
-        juce::File("/usr/local/lib/vst")                    // Linux
+        juce::File("/Library/Audio/Plug-Ins/VST"),
+        juce::File("/Library/Audio/Plug-Ins/VST3"),
+        juce::File("/Library/Audio/Plug-Ins/Components"),
+        juce::File("~/Library/Audio/Plug-Ins/VST"), // User directory
+        juce::File("~/Library/Audio/Plug-Ins/VST3"),
+        juce::File("~/Library/Audio/Plug-Ins/Components"),
+        juce::File("~/.vst"),
+        juce::File("/usr/lib/vst"),
+        juce::File("/usr/local/lib/vst")
     };
 
-    juce::StringArray supportedExtensions = { ".vst", ".vst3", ".component", ".so" }; // Added Linux extension
+    juce::StringArray supportedExtensions = { ".vst", ".vst3", ".component" };
 
     for (const auto& dir : pluginDirectories)
     {
-        if (dir.isDirectory())
-        {
-            DBG("Scanning directory: " << dir.getFullPathName());
+        DBG("Scanning directory: " << dir.getFullPathName());
 
-            auto files = dir.findChildFiles(juce::File::findFiles, true);
-            for (const auto& file : files)
-            {
-                DBG("Found file: " << file.getFullPathName());
-
-                if (supportedExtensions.contains(file.getFileExtension()))
-                {
-                    try
-                    {
-                        if (validatePlugin(file))
-                            scannedPlugins.add(file.getFullPathName());
-                        else
-                            DBG("Invalid plugin: " << file.getFullPathName());
-                    }
-                    catch (const std::exception& e)
-                    {
-                        DBG("Error loading plugin: " << file.getFullPathName() << " - " << e.what());
-                    }
-                    catch (...)
-                    {
-                        DBG("Unknown error loading plugin: " << file.getFullPathName());
-                    }
-                }
-            }
-        }
-        else
+        if (!dir.isDirectory())
         {
             DBG("Directory not found: " << dir.getFullPathName());
+            continue;
+        }
+
+        auto files = dir.findChildFiles(juce::File::findDirectories, true); // Look for directories (plugin bundles)
+        DBG("Number of potential plugin bundles found: " << files.size());
+
+        for (const auto& file : files)
+        {
+            if (supportedExtensions.contains(file.getFileExtension()))
+            {
+                // Check if this is a plugin bundle
+                auto binary = file.getChildFile("Contents/MacOS").getChildFile(file.getFileNameWithoutExtension());
+                if (binary.existsAsFile())
+                {
+                    DBG("Found plugin binary: " << binary.getFullPathName());
+                    if (validatePlugin(binary))
+                    {
+                        scannedPlugins.add(file.getFullPathName());
+                    }
+                    else
+                    {
+                        DBG("Invalid plugin binary: " << binary.getFullPathName());
+                    }
+                }
+                else
+                {
+                    DBG("No binary found in plugin bundle: " << file.getFullPathName());
+                }
+            }
         }
     }
 
