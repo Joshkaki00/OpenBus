@@ -46,7 +46,7 @@ MainComponent::MainComponent()
         DBG("Selected Hardware Output: " << selectedOutput);
     };
 
-    setSize(1000, 800); // Increased window size
+    setSize(600, 400); // Increased window size
 }
 
 MainComponent::~MainComponent()
@@ -70,17 +70,17 @@ void MainComponent::resized()
 
     // Layout hardware inputs
     hardwareInputsLabel.setBounds(area.removeFromTop(labelHeight));
-    hardwareInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 1));
+    hardwareInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
     area.removeFromTop(verticalSpacing); // Add spacing
 
     // Layout virtual inputs
     virtualInputsLabel.setBounds(area.removeFromTop(labelHeight));
-    virtualInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 1));
+    virtualInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
     area.removeFromTop(verticalSpacing); // Add spacing
 
     // Layout hardware outputs
     hardwareOutLabel.setBounds(area.removeFromTop(labelHeight));
-    hardwareOutMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 1));
+    hardwareOutMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
 }
 
 void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
