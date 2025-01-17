@@ -270,6 +270,6 @@ pip-selfcheck.json
 .vscode/
 
 # AudioRouter user state
-AudioRouterApp/Builds/MacOSX/AudioRouter.xcodeproj/project.xcworkspace/xcuserdata/
+/AudioRouterApp/Builds/MacOSX/AudioRouterApp.xcodeproj/project.xcworkspace/xcuserdata/
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,python,c++,venv
