@@ -15,9 +15,6 @@ MainComponent::MainComponent()
     setupDropdown(virtualInputsMenu, "Virtual Inputs", virtualInputsLabel);
     setupDropdown(hardwareOutMenu, "Hardware Outputs", hardwareOutLabel);
     
-    // Add the "Load Plugin" button
-    addAndMakeVisible(loadPluginButton);
-    loadPluginButton.onClick = [this]() { onLoadPlugin(); };
 
     // Get available device types
     auto& availableDeviceTypes = audioDeviceManager.getAvailableDeviceTypes();
@@ -87,8 +84,6 @@ void MainComponent::resized()
     hardwareOutLabel.setBounds(area.removeFromTop(labelHeight));
     hardwareOutMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
     
-    // Layout the "Load Plugin" button
-    loadPluginButton.setBounds(area.removeFromTop(buttonHeight));
 }
 
 void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
@@ -100,6 +95,59 @@ void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& 
     addAndMakeVisible(label);
     label.setText(labelText, juce::dontSendNotification);
     label.attachToComponent(&dropdown, true); // Attach the label to the dropdown
+}
+
+void MainComponent::scanForPlugins()
+{
+    scannedPlugins.clear(); // Clear previous results
+
+    // List of directories to scan
+    juce::Array<juce::File> pluginDirectories = {
+        juce::File("~/Library/Audio/Plug-Ins/VST"),
+        juce::File("~/Library/Audio/Plug-Ins/VST3"),
+        juce::File("~/Library/Audio/Plug-Ins/Components"),
+        juce::File("/Library/Audio/Plug-Ins/VST"),
+        juce::File("/Library/Audio/Plug-Ins/VST3"),
+        juce::File("/Library/Audio/Plug-Ins/Components")
+    };
+
+    // Supported extensions
+    juce::StringArray supportedExtensions = { ".vst", ".vst3", ".component" };
+
+    for (const auto& dir : pluginDirectories)
+    {
+        if (dir.isDirectory())
+        {
+            auto files = dir.findChildFiles(juce::File::findFiles, true);
+            for (const auto& file : files)
+            {
+                if (supportedExtensions.contains(file.getFileExtension()))
+                {
+                    scannedPlugins.add(file.getFullPathName());
+                }
+            }
+        }
+    }
+
+    // Update the dropdown menu with scanned plugins
+    populateDropdownWithPlugins();
+}
+
+void MainComponent::populateDropdownWithPlugins()
+{
+    pluginListMenu.clear();
+
+    if (scannedPlugins.isEmpty())
+    {
+        pluginListMenu.addItem("No plugins found", 1);
+    }
+    else
+    {
+        for (int i = 0; i < scannedPlugins.size(); ++i)
+        {
+            pluginListMenu.addItem(scannedPlugins[i], i + 1);
+        }
+    }
 }
 
 void MainComponent::populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& deviceNames)
