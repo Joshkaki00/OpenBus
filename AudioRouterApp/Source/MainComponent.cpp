@@ -59,13 +59,13 @@ void MainComponent::populateDropdown(juce::ComboBox& dropdown, const juce::Strin
 void MainComponent::scanForPlugins()
 {
     // Define plugin directories for macOS
-    juce::FileSearchPath pluginSearchPaths {
-        "/Library/Audio/Plug-Ins/VST",
-        "/Library/Audio/Plug-Ins/VST3",
-        "/Library/Audio/Plug-Ins/Components",  // For AU plugins
-        "~/Library/Audio/Plug-Ins/VST",
-        "~/Library/Audio/Plug-Ins/VST3",
-        "~/Library/Audio/Plug-Ins/Components" // For AU plugins in user directory
+    juce::Array<juce::File> pluginDirectories = {
+        juce::File("/Library/Audio/Plug-Ins/VST"),
+        juce::File("/Library/Audio/Plug-Ins/VST3"),
+        juce::File("/Library/Audio/Plug-Ins/Components"),
+        juce::File("~/Library/Audio/Plug-Ins/VST"),
+        juce::File("~/Library/Audio/Plug-Ins/VST3"),
+        juce::File("~/Library/Audio/Plug-Ins/Components")
     };
 
     DBG("Starting plugin scan...");
@@ -74,10 +74,8 @@ void MainComponent::scanForPlugins()
     juce::AudioPluginFormatManager pluginFormatManager;
     pluginFormatManager.addDefaultFormats(); // Adds AU, VST, VST3 formats by default
 
-    for (const auto& path : pluginSearchPaths)
+    for (const auto& directory : pluginDirectories)
     {
-        juce::File directory(path);
-
         if (!directory.isDirectory())
         {
             DBG("Directory not found: " << directory.getFullPathName());
@@ -86,37 +84,39 @@ void MainComponent::scanForPlugins()
 
         DBG("Scanning directory: " << directory.getFullPathName());
 
-        juce::DirectoryIterator iter(directory, false, "*.*", juce::File::findFiles);
-        while (iter.next())
+        // Use RangedDirectoryIterator for better and modern file iteration
+        for (const auto& file : juce::RangedDirectoryIterator(directory, false, "*.*"))
         {
-            auto file = iter.getFile();
-            DBG("Scanning file: " << file.getFileName());
+            DBG("Scanning file: " << file.getFile().getFileName());
 
             // Check for plugin validity
-            if (file.hasFileExtension("vst;vst3;component"))
+            if (file.getFile().hasFileExtension({"vst", "vst3", "component"}))
             {
-                DBG("Found potential plugin: " << file.getFullPathName());
+                DBG("Found potential plugin: " << file.getFile().getFullPathName());
+
+                juce::PluginDescription description;
+                juce::String errorMessage;
 
                 auto plugin = pluginFormatManager.createPluginInstance(
-                    juce::PluginDescription { file.getFullPathName(), {}, 0, {} },
-                    44100.0,
-                    512,
-                    DBG
+                    description,
+                    44100.0, // sample rate
+                    512,     // buffer size
+                    errorMessage
                 );
 
                 if (plugin)
                 {
-                    DBG("Successfully loaded plugin: " << file.getFileName());
-                    scannedPlugins.add(file.getFullPathName());
+                    DBG("Successfully loaded plugin: " << file.getFile().getFileName());
+                    scannedPlugins.add(file.getFile().getFullPathName());
                 }
                 else
                 {
-                    DBG("Failed to load plugin: " << file.getFileName());
+                    DBG("Failed to load plugin: " << file.getFile().getFileName() << " - " << errorMessage);
                 }
             }
             else
             {
-                DBG("Skipping unsupported file: " << file.getFileName());
+                DBG("Skipping unsupported file: " << file.getFile().getFileName());
             }
         }
     }
