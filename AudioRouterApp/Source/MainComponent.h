@@ -27,7 +27,8 @@ public:
     }
 };
 
-class MainComponent : public juce::Component
+class MainComponent : public juce::Component,
+                      public juce::AudioDeviceManager::Listener
 {
 public:
     // Constructor and Destructor
@@ -37,31 +38,20 @@ public:
     // Component Overrides
     void paint(juce::Graphics&) override;
     void resized() override;
-    
+
     // AudioDeviceManager Listener
     void audioDeviceListChanged() override; // Triggered on device change
 
 private:
     // Helper functions
     void setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label);
-    void populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& deviceNames);
-    void scanForPlugins();
-    void populateDropdownWithPlugins();
+    void populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& items);
 
     // UI Components
     juce::ComboBox hardwareInputsMenu, hardwareOutMenu;
     juce::Label hardwareInputsLabel{"Hardware Inputs"}, hardwareOutLabel{"Hardware Outputs"};
-    juce::ComboBox pluginListMenu;
-    juce::Label pluginListLabel{"Available Plugins"};
-    juce::TextButton scanPluginsButton{"Scan Plugins"};
-    
     juce::AudioDeviceManager audioDeviceManager;
 
-    // List of scanned plugins
-    juce::StringArray scannedPlugins;
-
-    // LookAndFeel
-    std::unique_ptr<CustomLookAndFeel> customLookAndFeel;
-
+    // Prevent copy and move
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
