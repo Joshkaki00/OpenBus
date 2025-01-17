@@ -3,33 +3,38 @@
 
 MainComponent::MainComponent()
 {
-    // Initialize AudioDeviceManager and register as a listener
+    // Initialize AudioDeviceManager
     audioDeviceManager.initialise(2, 2, nullptr, true, {}, nullptr);
-    audioDeviceManager.addAudioDeviceListChangedListener(this); // Register listener
 
-    // Setup the dropdowns
+    // Register MainComponent as a listener
+    audioDeviceManager.addChangeListener(this);
+
+    // Setup dropdowns
     setupDropdown(hardwareInputsMenu, "Hardware Inputs", hardwareInputsLabel);
     setupDropdown(hardwareOutMenu, "Hardware Outputs", hardwareOutLabel);
 
-    // Populate initial input and output names
-    audioDeviceListChanged();
+    // Populate dropdowns with initial device names
+    changeListenerCallback(&audioDeviceManager);
 
     setSize(600, 400);
 }
 
 MainComponent::~MainComponent()
 {
-    // Unregister as a listener
-    audioDeviceManager.removeAudioDeviceListChangedListener(this);
+    // Remove MainComponent as a listener
+    audioDeviceManager.removeChangeListener(this);
 }
 
-void MainComponent::audioDeviceListChanged()
+void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
-    // Get the current device and populate input/output menus
-    if (auto* currentDevice = audioDeviceManager.getCurrentAudioDevice())
+    if (source == &audioDeviceManager)
     {
-        populateDropdown(hardwareInputsMenu, currentDevice->getInputChannelNames());
-        populateDropdown(hardwareOutMenu, currentDevice->getOutputChannelNames());
+        // Get the current device and update dropdowns
+        if (auto* currentDevice = audioDeviceManager.getCurrentAudioDevice())
+        {
+            populateDropdown(hardwareInputsMenu, currentDevice->getInputChannelNames());
+            populateDropdown(hardwareOutMenu, currentDevice->getOutputChannelNames());
+        }
     }
 }
 

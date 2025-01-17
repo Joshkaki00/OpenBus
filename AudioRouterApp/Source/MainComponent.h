@@ -28,28 +28,28 @@ public:
 };
 
 class MainComponent : public juce::Component,
-                      public juce::AudioDeviceManager::Listener // Implement listener
+                      public juce::ChangeListener // Use ChangeListener for device updates
 {
-    public:
+public:
     MainComponent();
     ~MainComponent() override;
-    
+
     // Component overrides
     void paint(juce::Graphics&) override;
     void resized() override;
-    
-    // AudioDeviceManager listener method
-    void audioDeviceListChanged() override;
-    
-    private:
+
+    // ChangeListener override
+    void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+
+private:
     // Helper functions
     void setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label);
     void populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& items);
-    
+
     // UI Components
     juce::ComboBox hardwareInputsMenu, hardwareOutMenu;
     juce::Label hardwareInputsLabel{"Hardware Inputs"}, hardwareOutLabel{"Hardware Outputs"};
     juce::AudioDeviceManager audioDeviceManager;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
