@@ -59,61 +59,69 @@ void MainComponent::populateDropdown(juce::ComboBox& dropdown, const juce::Strin
 void MainComponent::scanForPlugins()
 {
     scannedPlugins.clear();
+    DBG("Starting plugin scan...");
+
+    juce::AudioPluginFormatManager formatManager;
+    formatManager.addDefaultFormats();
+
+    DBG("Registered plugin formats:");
+    for (int i = 0; i < formatManager.getNumFormats(); ++i)
+    {
+        DBG(" - " << formatManager.getFormat(i)->getName());
+    }
 
     juce::Array<juce::File> pluginDirectories = {
-        juce::File("/Library/Audio/Plug-Ins/VST"),
-        juce::File("/Library/Audio/Plug-Ins/VST3"),
-        juce::File("/Library/Audio/Plug-Ins/Components"),
-        juce::File("~/Library/Audio/Plug-Ins/VST"), // User directory
-        juce::File("~/Library/Audio/Plug-Ins/VST3"),
-        juce::File("~/Library/Audio/Plug-Ins/Components"),
-        juce::File("~/.vst"),
-        juce::File("/usr/lib/vst"),
-        juce::File("/usr/local/lib/vst")
+        juce::File("/Library/Audio/Plug-Ins/VST"),          // macOS
+        juce::File("/Library/Audio/Plug-Ins/VST3"),         // macOS
+        juce::File("/Library/Audio/Plug-Ins/Components"),   // macOS
+        juce::File("~/.vst"),                               // Linux
+        juce::File("/usr/lib/vst"),                         // Linux
+        juce::File("/usr/local/lib/vst")                    // Linux
     };
 
-    juce::StringArray supportedExtensions = { ".vst", ".vst3", ".component" };
+    juce::StringArray supportedExtensions = { ".vst", ".vst3", ".component", ".so" }; // Added Linux extension
 
     for (const auto& dir : pluginDirectories)
     {
-        DBG("Scanning directory: " << dir.getFullPathName());
-
-        if (!dir.isDirectory())
+        if (dir.isDirectory())
         {
-            DBG("Directory not found: " << dir.getFullPathName());
-            continue;
-        }
+            DBG("Scanning directory: " << dir.getFullPathName());
+            auto files = dir.findChildFiles(juce::File::findFiles, true);
 
-        auto files = dir.findChildFiles(juce::File::findDirectories, true); // Look for directories (plugin bundles)
-        DBG("Number of potential plugin bundles found: " << files.size());
+            DBG("Number of potential plugin bundles found: " << files.size());
 
-        for (const auto& file : files)
-        {
-            if (supportedExtensions.contains(file.getFileExtension()))
+            for (const auto& file : files)
             {
-                // Check if this is a plugin bundle
-                auto binary = file.getChildFile("Contents/MacOS").getChildFile(file.getFileNameWithoutExtension());
-                if (binary.existsAsFile())
+                DBG("Found file: " << file.getFullPathName());
+
+                if (supportedExtensions.contains(file.getFileExtension()))
                 {
-                    DBG("Found plugin binary: " << binary.getFullPathName());
-                    if (validatePlugin(binary))
+                    DBG("File extension matches supported formats: " << file.getFileExtension());
+
+                    if (validatePlugin(file))
                     {
                         scannedPlugins.add(file.getFullPathName());
+                        DBG("Plugin added to list: " << file.getFullPathName());
                     }
                     else
                     {
-                        DBG("Invalid plugin binary: " << binary.getFullPathName());
+                        DBG("Invalid plugin: " << file.getFullPathName());
                     }
                 }
                 else
                 {
-                    DBG("No binary found in plugin bundle: " << file.getFullPathName());
+                    DBG("Skipping unsupported file: " << file.getFullPathName());
                 }
             }
+        }
+        else
+        {
+            DBG("Directory not found: " << dir.getFullPathName());
         }
     }
 
     populatePluginDropdown();
+    DBG("Plugin scan completed.");
 }
 
 bool MainComponent::validatePlugin(const juce::File& file)
@@ -121,24 +129,48 @@ bool MainComponent::validatePlugin(const juce::File& file)
     juce::AudioPluginFormatManager formatManager;
     formatManager.addDefaultFormats();
 
+    DBG("Validating plugin binary: " << file.getFullPathName());
+
     juce::OwnedArray<juce::PluginDescription> pluginDescriptions;
 
     for (auto* format : formatManager.getFormats())
     {
+        DBG("Trying format: " << format->getName());
+
         if (format->fileMightContainThisPluginType(file.getFullPathName()))
         {
-            format->findAllTypesForFile(pluginDescriptions, file.getFullPathName());
+            try
+            {
+                DBG("Checking if file might contain a valid plugin: " << file.getFullPathName());
+                format->findAllTypesForFile(pluginDescriptions, file.getFullPathName());
+
+                if (!pluginDescriptions.isEmpty())
+                {
+                    DBG("Plugin is valid: " << pluginDescriptions[0]->name);
+                    return true;
+                }
+                else
+                {
+                    DBG("No valid plugin descriptions found for: " << file.getFullPathName());
+                }
+            }
+            catch (const std::exception& e)
+            {
+                DBG("Validation error for " << file.getFullPathName() << ": " << e.what());
+            }
+            catch (...)
+            {
+                DBG("Unknown validation error for: " << file.getFullPathName());
+            }
+        }
+        else
+        {
+            DBG("File does not match format: " << format->getName());
         }
     }
 
-    if (pluginDescriptions.isEmpty())
-    {
-        DBG("No valid plugin descriptions found for: " << file.getFullPathName());
-        return false;
-    }
-
-    DBG("Valid plugin found: " << pluginDescriptions[0]->name);
-    return true;
+    DBG("Validation failed for plugin binary: " << file.getFullPathName());
+    return false;
 }
 
 void MainComponent::populatePluginDropdown()
