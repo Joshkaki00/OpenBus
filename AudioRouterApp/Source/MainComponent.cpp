@@ -58,27 +58,14 @@ void MainComponent::populateDropdown(juce::ComboBox& dropdown, const juce::Strin
 
 void MainComponent::scanForPlugins()
 {
-    scannedPlugins.clear();
-    DBG("Starting plugin scan...");
-
-    juce::AudioPluginFormatManager formatManager;
-    formatManager.addDefaultFormats();
-
-    DBG("Registered plugin formats:");
-    for (int i = 0; i < formatManager.getNumFormats(); ++i)
-    {
-        DBG(" - " << formatManager.getFormat(i)->getName());
-    }
-
+    // List of macOS-specific plugin directories
     juce::Array<juce::File> pluginDirectories = {
-        juce::File("/Library/Audio/Plug-Ins/VST"),          // macOS
-        juce::File("/Library/Audio/Plug-Ins/VST3"),         // macOS
-        juce::File("/Library/Audio/Plug-Ins/Components"),   // macOS
-        juce::File("~/.vst"),                               // Linux
-        juce::File("/usr/lib/vst"),                         // Linux
-        juce::File("/usr/local/lib/vst")                    // Linux
+        juce::File("/Library/Audio/Plug-Ins/Components"), // Audio Units
+        juce::File("/Library/Audio/Plug-Ins/VST"),        // VST2 Plugins
+        juce::File("/Library/Audio/Plug-Ins/VST3")        // VST3 Plugins
     };
 
+    // Iterate through the directories to find plugins
     for (const auto& dir : pluginDirectories)
     {
         if (!dir.isDirectory())
@@ -88,14 +75,18 @@ void MainComponent::scanForPlugins()
         }
 
         DBG("Scanning directory: " << dir.getFullPathName());
-        auto files = dir.findChildFiles(juce::File::findFiles, false); // Non-recursive
+        auto files = dir.findChildFiles(juce::File::findFiles, false); // Non-recursive file search
 
         for (const auto& file : files)
         {
+            DBG("Scanning file: " << file.getFullPathName());
+            
+            // Check for valid plugin file extensions
             if (file.hasFileExtension("vst") || file.hasFileExtension("vst3") || file.hasFileExtension("component"))
             {
-                DBG("Found plugin bundle: " << file.getFullPathName());
-
+                DBG("Valid plugin file: " << file.getFileName());
+                
+                // Validate the plugin and add it to the scanned list
                 if (validatePlugin(file))
                 {
                     scannedPlugins.add(file.getFullPathName());
@@ -108,11 +99,12 @@ void MainComponent::scanForPlugins()
             }
             else
             {
-                DBG("Skipping unsupported file: " << file.getFullPathName());
+                DBG("Skipping unsupported file: " << file.getFileName());
             }
         }
     }
 
+    // Update the GUI dropdown or other components with the scanned plugins
     populatePluginDropdown();
     DBG("Plugin scan completed.");
 }
