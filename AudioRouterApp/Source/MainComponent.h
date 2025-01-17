@@ -37,6 +37,9 @@ public:
     // Component Overrides
     void paint(juce::Graphics&) override;
     void resized() override;
+    
+    // AudioDeviceManager Listener
+    void audioDeviceListChanged() override; // Triggered on device change
 
 private:
     // Helper functions
