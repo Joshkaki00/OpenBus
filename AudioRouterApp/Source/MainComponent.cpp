@@ -1,12 +1,11 @@
 #include "MainComponent.h"
 #include "AudioEngine.h"
-#include <juce_audio_devices/juce_audio_devices.h>
 
 MainComponent::MainComponent()
 {
     // Initialize AudioDeviceManager and register as a listener
     audioDeviceManager.initialise(2, 2, nullptr, true, {}, nullptr);
-    audioDeviceManager.addAudioCallback(this);
+    audioDeviceManager.addAudioDeviceListChangedListener(this); // Register listener
 
     // Setup the dropdowns
     setupDropdown(hardwareInputsMenu, "Hardware Inputs", hardwareInputsLabel);
@@ -15,13 +14,13 @@ MainComponent::MainComponent()
     // Populate initial input and output names
     audioDeviceListChanged();
 
-    setSize(600, 400); // Adjust size as needed
+    setSize(600, 400);
 }
 
 MainComponent::~MainComponent()
 {
-    // Remove listener
-    audioDeviceManager.removeAudioCallback(this);
+    // Unregister as a listener
+    audioDeviceManager.removeAudioDeviceListChangedListener(this);
 }
 
 void MainComponent::audioDeviceListChanged()
@@ -52,4 +51,24 @@ void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& 
     addAndMakeVisible(label);
     label.setText(labelText, juce::dontSendNotification);
     label.attachToComponent(&dropdown, true);
+}
+
+void MainComponent::paint(juce::Graphics& g)
+{
+    g.fillAll(juce::Colours::lightgrey);
+}
+
+void MainComponent::resized()
+{
+    auto area = getLocalBounds().reduced(20);
+    auto labelHeight = 20;
+    auto dropdownHeight = 30;
+    auto spacing = 10;
+
+    hardwareInputsLabel.setBounds(area.removeFromTop(labelHeight));
+    hardwareInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
+    area.removeFromTop(spacing);
+
+    hardwareOutLabel.setBounds(area.removeFromTop(labelHeight));
+    hardwareOutMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
 }
