@@ -3,37 +3,31 @@
 
 MainComponent::MainComponent()
 {
-    // Initialize the LookAndFeel
+    // Initialize LookAndFeel
     customLookAndFeel = std::make_unique<CustomLookAndFeel>();
     setLookAndFeel(customLookAndFeel.get());
 
-    // Setup the hardware dropdowns
+    // Setup hardware input/output dropdowns
     setupDropdown(hardwareInputsMenu, "Hardware Inputs", hardwareInputsLabel);
-    setupDropdown(virtualInputsMenu, "Virtual Inputs", virtualInputsLabel);
     setupDropdown(hardwareOutMenu, "Hardware Outputs", hardwareOutLabel);
 
-    // Populate hardware inputs
-    juce::StringArray hardwareInputs = { "Mic 1", "Mic 2", "Line In" }; // Example list
-    populateDropdown(hardwareInputsMenu, hardwareInputs);
+    // Populate hardware inputs and outputs
+    if (auto* currentDevice = audioDeviceManager.getCurrentAudioDevice())
+    {
+        populateDropdown(hardwareInputsMenu, currentDevice->getInputChannelNames());
+        populateDropdown(hardwareOutMenu, currentDevice->getOutputChannelNames());
+    }
 
-    // Populate virtual inputs
-    juce::StringArray virtualInputs = { "Virtual Input 1", "Virtual Input 2" }; // Example list
-    populateDropdown(virtualInputsMenu, virtualInputs);
-
-    // Populate hardware outputs
-    juce::StringArray hardwareOutputs = { "Speakers", "Headphones", "Line Out" }; // Example list
-    populateDropdown(hardwareOutMenu, hardwareOutputs);
-
-    // Setup the plugin list dropdown
+    // Setup plugin list dropdown
     addAndMakeVisible(pluginListMenu);
     pluginListLabel.setJustificationType(juce::Justification::centredTop);
     addAndMakeVisible(pluginListLabel);
 
-    // Setup the scan plugins button
+    // Setup scan plugins button
     addAndMakeVisible(scanPluginsButton);
     scanPluginsButton.onClick = [this]() { scanForPlugins(); };
 
-    setSize(600, 500); // Increased window size
+    setSize(600, 400);
 }
 
 MainComponent::~MainComponent()
@@ -43,7 +37,7 @@ MainComponent::~MainComponent()
 
 void MainComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::lightgrey); // Background color
+    g.fillAll(juce::Colours::lightgrey);
 }
 
 void MainComponent::resized()
@@ -57,11 +51,6 @@ void MainComponent::resized()
     // Layout hardware inputs
     hardwareInputsLabel.setBounds(area.removeFromTop(labelHeight));
     hardwareInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
-    area.removeFromTop(verticalSpacing);
-
-    // Layout virtual inputs
-    virtualInputsLabel.setBounds(area.removeFromTop(labelHeight));
-    virtualInputsMenu.setBounds(area.removeFromTop(dropdownHeight).reduced(0, 5));
     area.removeFromTop(verticalSpacing);
 
     // Layout hardware outputs
@@ -81,7 +70,7 @@ void MainComponent::resized()
 void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
 {
     addAndMakeVisible(dropdown);
-    label.setJustificationType(juce::Justification::centredLeft);
+    label.setJustificationType(juce::Justification::centredTop);
     addAndMakeVisible(label);
     label.setText(labelText, juce::dontSendNotification);
 }

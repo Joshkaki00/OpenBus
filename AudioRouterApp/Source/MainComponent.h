@@ -15,14 +15,14 @@ public:
     juce::Font getComboBoxFont(juce::ComboBox&) override
     {
         juce::FontOptions options;
-        options = options.withHeight(18.0f); // Set font height
+        options = options.withHeight(18.0f);
         return juce::Font(options);
     }
 
     juce::Font getLabelFont(juce::Label&) override
     {
         juce::FontOptions options;
-        options = options.withHeight(18.0f); // Set font height
+        options = options.withHeight(18.0f);
         return juce::Font(options);
     }
 };
@@ -46,8 +46,8 @@ private:
     void populateDropdownWithPlugins();
 
     // UI Components
-    juce::ComboBox hardwareInputsMenu, virtualInputsMenu, hardwareOutMenu;
-    juce::Label hardwareInputsLabel{"Hardware Inputs"}, virtualInputsLabel{"Virtual Inputs"}, hardwareOutLabel{"Hardware Outputs"};
+    juce::ComboBox hardwareInputsMenu, hardwareOutMenu;
+    juce::Label hardwareInputsLabel{"Hardware Inputs"}, hardwareOutLabel{"Hardware Outputs"};
     juce::ComboBox pluginListMenu;
     juce::Label pluginListLabel{"Available Plugins"};
     juce::TextButton scanPluginsButton{"Scan Plugins"};
