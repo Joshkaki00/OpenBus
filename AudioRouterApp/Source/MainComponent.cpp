@@ -93,7 +93,7 @@ void MainComponent::scanForPlugins()
             DBG("Scanning file: " << file.getFile().getFileName());
 
             // Check for plugin validity using StringArray
-            if (file.getFile().hasFileExtension(validExtensions))
+            if (validExtensions.contains(file.getFile().getFileExtension().substring(1)))
             {
                 DBG("Found potential plugin: " << file.getFile().getFullPathName());
 
