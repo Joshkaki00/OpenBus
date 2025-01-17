@@ -43,7 +43,6 @@
 		D46408236751561D2985AC7C /* Cocoa.framework */ = {isa = PBXBuildFile; fileRef = 0F2B28FCE399F5FF0855178C; };
 		D4AD4C4DE4DD526474C39346 /* QuartzCore.framework */ = {isa = PBXBuildFile; fileRef = DF1EF85C08EA831179EDF863; };
 		D575ED77F938E9B3B1ABFBC7 /* App */ = {isa = PBXBuildFile; fileRef = 03B4563FB3F3B5A204951521; };
-		D927B590552BF9A082FD1B2F /* AudioUnit.framework */ = {isa = PBXBuildFile; fileRef = ECE49CD244C1DD0A6DD18FA3; };
 		E17013A469A74F31893662E5 /* include_juce_audio_basics.mm */ = {isa = PBXBuildFile; fileRef = CFBF5EF9E2EB15AC62D97FE0; };
 /* End PBXBuildFile section */
 
@@ -101,7 +100,6 @@
 		E71C924C4CDCCE6C21F360A8 /* ZeroMQServer.h */ /* ZeroMQServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ZeroMQServer.h; path = ../../Source/ZeroMQServer.h; sourceTree = SOURCE_ROOT; };
 		E7465B7E12BBE66A394266B6 /* juce_dsp */ /* juce_dsp */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_dsp; path = "~/JUCE/modules/juce_dsp"; sourceTree = "<absolute>"; };
 		EA1BADC2ED3C5D4CB973D8C5 /* include_juce_core_CompilationTime.cpp */ /* include_juce_core_CompilationTime.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = include_juce_core_CompilationTime.cpp; path = ../../JuceLibraryCode/include_juce_core_CompilationTime.cpp; sourceTree = SOURCE_ROOT; };
-		ECE49CD244C1DD0A6DD18FA3 /* AudioUnit.framework */ /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		ECED370650538C9460665348 /* juce_gui_extra */ /* juce_gui_extra */ = {isa = PBXFileReference; lastKnownFileType = folder; name = juce_gui_extra; path = "~/JUCE/modules/juce_gui_extra"; sourceTree = "<absolute>"; };
 		F0910073CE9AA487FBF297C7 /* include_juce_gui_basics.mm */ /* include_juce_gui_basics.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_gui_basics.mm; path = ../../JuceLibraryCode/include_juce_gui_basics.mm; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -111,7 +109,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D927B590552BF9A082FD1B2F,
 				4CEBBE713FCE40D7E6948FFC,
 				7D53991742DEFEE2C98E0781,
 				D46408236751561D2985AC7C,
@@ -232,7 +229,6 @@
 		FAF7C932390668AB5DC03AAE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				ECE49CD244C1DD0A6DD18FA3,
 				351566C7A9A7D0165FBB7D69,
 				9607463DCB8830643C3CD680,
 				0F2B28FCE399F5FF0855178C,
@@ -441,11 +437,6 @@
 					"JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
 					"JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
-					"JUCE_PLUGINHOST_VST=1",
-					"JUCE_PLUGINHOST_VST3=1",
-					"JUCE_PLUGINHOST_AU=1",
-					"JUCE_PLUGINHOST_LV2=1",
-					"JUCE_CUSTOM_VST3_SDK=1",
 					"JUCE_STRICT_REFCOUNTEDPOINTER=1",
 					"JUCE_STANDALONE_APPLICATION=1",
 					"VST2_SDK_ROOT=~/vstsdk2.4",
@@ -464,14 +455,6 @@
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lilv/src",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lilv",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sratom",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sord/src",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sord",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/serd",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lv2",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/",
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"$(HOME)/JUCE/modules",
 					"/opt/homebrew/include",
@@ -494,7 +477,7 @@
 				);
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MTL_HEADER_SEARCH_PATHS = "$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lilv/src $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lilv $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sratom $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sord/src $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sord $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/serd $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lv2 $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/ $(SRCROOT)/../../JuceLibraryCode $(HOME)/JUCE/modules /opt/homebrew/include /opt/homebrew/Cellar/nlohmann-json/3.11.3/include /opt/homebrew/Cellar/cppzmq/4.10.0/include $(HOME)/vstsdk2.4 $(HOME)/vstsdk2.4/pluginterfaces $(HOME)/vstsdk2.4/pluginterfaces/vst2.x $(HOME)/VST_SDK/vst3sdk $(HOME)/VST_SDK/vst3sdk/pluginterfaces $(HOME)/VST_SDK/vst3sdk/pluginterfaces/vst";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(HOME)/JUCE/modules /opt/homebrew/include /opt/homebrew/Cellar/nlohmann-json/3.11.3/include /opt/homebrew/Cellar/cppzmq/4.10.0/include $(HOME)/vstsdk2.4 $(HOME)/vstsdk2.4/pluginterfaces $(HOME)/vstsdk2.4/pluginterfaces/vst2.x $(HOME)/VST_SDK/vst3sdk $(HOME)/VST_SDK/vst3sdk/pluginterfaces $(HOME)/VST_SDK/vst3sdk/pluginterfaces/vst";
 				OTHER_LDFLAGS = "-lzmq";
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.AudioRouterApp;
 				PRODUCT_NAME = "AudioRouterApp";
@@ -532,11 +515,6 @@
 					"JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
 					"JUCE_MODULE_AVAILABLE_juce_gui_extra=1",
 					"JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
-					"JUCE_PLUGINHOST_VST=1",
-					"JUCE_PLUGINHOST_VST3=1",
-					"JUCE_PLUGINHOST_AU=1",
-					"JUCE_PLUGINHOST_LV2=1",
-					"JUCE_CUSTOM_VST3_SDK=1",
 					"JUCE_STRICT_REFCOUNTEDPOINTER=1",
 					"JUCE_STANDALONE_APPLICATION=1",
 					"VST2_SDK_ROOT=~/vstsdk2.4",
@@ -555,14 +533,6 @@
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lilv/src",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lilv",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sratom",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sord/src",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sord",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/serd",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lv2",
-					"$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/",
 					"$(SRCROOT)/../../JuceLibraryCode",
 					"$(HOME)/JUCE/modules",
 					"/opt/homebrew/include",
@@ -584,7 +554,7 @@
 					"\"/opt/homebrew/lib\"",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
-				MTL_HEADER_SEARCH_PATHS = "$(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lilv/src $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lilv $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sratom $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sord/src $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/sord $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/serd $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/lv2 $(HOME)/JUCE/modules/juce_audio_processors/format_types/LV2_SDK/ $(SRCROOT)/../../JuceLibraryCode $(HOME)/JUCE/modules /opt/homebrew/include /opt/homebrew/Cellar/nlohmann-json/3.11.3/include /opt/homebrew/Cellar/cppzmq/4.10.0/include $(HOME)/vstsdk2.4 $(HOME)/vstsdk2.4/pluginterfaces $(HOME)/vstsdk2.4/pluginterfaces/vst2.x $(HOME)/VST_SDK/vst3sdk $(HOME)/VST_SDK/vst3sdk/pluginterfaces $(HOME)/VST_SDK/vst3sdk/pluginterfaces/vst";
+				MTL_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../JuceLibraryCode $(HOME)/JUCE/modules /opt/homebrew/include /opt/homebrew/Cellar/nlohmann-json/3.11.3/include /opt/homebrew/Cellar/cppzmq/4.10.0/include $(HOME)/vstsdk2.4 $(HOME)/vstsdk2.4/pluginterfaces $(HOME)/vstsdk2.4/pluginterfaces/vst2.x $(HOME)/VST_SDK/vst3sdk $(HOME)/VST_SDK/vst3sdk/pluginterfaces $(HOME)/VST_SDK/vst3sdk/pluginterfaces/vst";
 				OTHER_LDFLAGS = "-lzmq";
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.AudioRouterApp;
 				PRODUCT_NAME = "AudioRouterApp";
