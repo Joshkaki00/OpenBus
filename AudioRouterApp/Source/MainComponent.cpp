@@ -71,9 +71,8 @@ void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& 
 
 void MainComponent::scanForPlugins()
 {
-    scannedPlugins.clear(); // Clear previous results
+    scannedPlugins.clear();
 
-    // List of directories to scan
     juce::Array<juce::File> pluginDirectories = {
         juce::File("~/Library/Audio/Plug-Ins/VST"),
         juce::File("~/Library/Audio/Plug-Ins/VST3"),
@@ -83,7 +82,6 @@ void MainComponent::scanForPlugins()
         juce::File("/Library/Audio/Plug-Ins/Components")
     };
 
-    // Supported extensions
     juce::StringArray supportedExtensions = { ".vst", ".vst3", ".component" };
 
     for (const auto& dir : pluginDirectories)
@@ -95,11 +93,22 @@ void MainComponent::scanForPlugins()
             {
                 if (supportedExtensions.contains(file.getFileExtension()))
                 {
-                    scannedPlugins.add(file.getFullPathName());
+                    try
+                    {
+                        // Validate plugin here before adding to the list
+                        if (validatePlugin(file))
+                            scannedPlugins.add(file.getFullPathName());
+                        else
+                            DBG("Invalid plugin: " << file.getFullPathName());
+                    }
+                    catch (...)
+                    {
+                        DBG("Error loading plugin: " << file.getFullPathName());
+                    }
                 }
             }
         }
-    }
+
 
     // Update the plugin dropdown
     populatePluginDropdown();
