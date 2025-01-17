@@ -92,7 +92,7 @@ void MainComponent::scanForPlugins()
 
         for (const auto& file : files)
         {
-            if (file.hasFileExtension({"vst", "vst3", "component"})) 
+            if (file.hasFileExtension(juce::StringArray({"vst", "vst3", "component"})))
             {
                 DBG("Found plugin bundle: " << file.getFullPathName());
 
