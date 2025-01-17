@@ -44,6 +44,7 @@ private:
     // Helper functions
     void setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label);
     void populateDropdown(juce::ComboBox& dropdown, const juce::StringArray& deviceNames);
+    void populateDropdownWithPlugins();
     void onLoadPlugin();
     void onSavePreset();
     void onLoadPreset();
@@ -53,6 +54,12 @@ private:
     juce::Label hardwareInputsLabel{"Hardware Inputs"}, virtualInputsLabel{"Virtual Inputs"}, hardwareOutLabel{"Hardware Outputs"};
     juce::AudioDeviceManager audioDeviceManager;
     juce::TextButton loadPluginButton{"Load Plugin"};
+    juce::ComboBox pluginListMenu;
+    juce::Label pluginListLabel{"Available Plugins"};
+    juce::TextButton scanPluginsButton{"Scan Plugins"};
+    
+    // List of scanned plugins
+    juce::StringArray scannedPlugins;
 
     // Custom LookAndFeel instance managed by a smart pointer
     std::unique_ptr<CustomLookAndFeel> customLookAndFeel;
