@@ -53,9 +53,12 @@ private:
     juce::ComboBox hardwareInputsMenu, hardwareOutMenu, pluginDropdown; // Added `pluginDropdown`
     juce::Label hardwareInputsLabel{"Hardware Inputs"},
                 hardwareOutLabel{"Hardware Outputs"},
-                pluginListLabel{"Available Plugins"};
+                pluginLabel{"Plugins"};            // Added `pluginLabel`
     juce::TextButton scanPluginsButton{"Scan Plugins"};
     juce::AudioDeviceManager audioDeviceManager;
+
+    // Custom LookAndFeel
+    CustomLookAndFeel customLookAndFeel;           // Added `customLookAndFeel`
 
     // Scanned plugins
     juce::StringArray scannedPlugins;
