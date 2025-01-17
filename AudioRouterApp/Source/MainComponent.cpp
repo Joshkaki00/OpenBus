@@ -113,6 +113,16 @@ void MainComponent::scanForPlugins()
     // Update the plugin dropdown
     populatePluginDropdown();
 }
+    
+bool MainComponent::validatePlugin(const juce::File& file)
+{
+    // Try loading the plugin to ensure it's valid
+    juce::AudioPluginFormatManager formatManager;
+    formatManager.addDefaultFormats();
+
+    auto plugin = formatManager.createPluginInstance(file, 44100.0, 512, {});
+    return plugin != nullptr;
+}
 
 void MainComponent::populatePluginDropdown()
 {
