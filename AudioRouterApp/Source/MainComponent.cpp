@@ -101,27 +101,39 @@ void MainComponent::scanForPlugins()
                         else
                             DBG("Invalid plugin: " << file.getFullPathName());
                     }
+                    catch (const std::exception& e)
+                    {
+                        DBG("Error loading plugin: " << file.getFullPathName() << " - " << e.what());
+                    }
                     catch (...)
                     {
-                        DBG("Error loading plugin: " << file.getFullPathName());
+                        DBG("Unknown error loading plugin: " << file.getFullPathName());
                     }
                 }
             }
         }
-
+    }
 
     // Update the plugin dropdown
     populatePluginDropdown();
 }
-    
+
 bool MainComponent::validatePlugin(const juce::File& file)
 {
     // Try loading the plugin to ensure it's valid
     juce::AudioPluginFormatManager formatManager;
     formatManager.addDefaultFormats();
 
-    auto plugin = formatManager.createPluginInstance(file, 44100.0, 512, {});
-    return plugin != nullptr;
+    juce::String errorMessage;
+    auto plugin = formatManager.createPluginInstance(file, 44100.0, 512, errorMessage);
+
+    if (plugin == nullptr)
+    {
+        DBG("Plugin validation failed: " << errorMessage);
+        return false;
+    }
+
+    return true;
 }
 
 void MainComponent::populatePluginDropdown()
