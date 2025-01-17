@@ -129,12 +129,12 @@ bool MainComponent::validatePlugin(const juce::File& file)
     // Find the correct format for the plugin
     for (auto* format : formatManager.getFormats())
     {
-        if (format->fileMightContainThisPluginType(file))
+        if (format->fileMightContainThisPluginType(file.getFullPathName()))
         {
-            if (format->getPluginDescriptionForFile(description, file.getFullPathName(), errorMessage))
+            if (format->getPluginDescriptionFor(description, file, errorMessage))
             {
                 // Try creating an instance of the plugin
-                auto plugin = formatManager.createPluginInstance(description, 44100.0, 512, errorMessage);
+                auto plugin = format->createPluginInstance(description, 44100.0, 512, errorMessage);
 
                 if (plugin == nullptr)
                 {
