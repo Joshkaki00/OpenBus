@@ -74,9 +74,6 @@ void MainComponent::scanForPlugins()
     scannedPlugins.clear();
 
     juce::Array<juce::File> pluginDirectories = {
-        juce::File("~/Library/Audio/Plug-Ins/VST"),
-        juce::File("~/Library/Audio/Plug-Ins/VST3"),
-        juce::File("~/Library/Audio/Plug-Ins/Components"),
         juce::File("/Library/Audio/Plug-Ins/VST"),
         juce::File("/Library/Audio/Plug-Ins/VST3"),
         juce::File("/Library/Audio/Plug-Ins/Components")
