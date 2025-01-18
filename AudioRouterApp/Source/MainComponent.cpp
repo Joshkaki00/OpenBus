@@ -83,6 +83,9 @@ void MainComponent::scanForPlugins()
     juce::AudioPluginFormatManager pluginFormatManager;
     pluginFormatManager.addDefaultFormats(); // Adds AU, VST, and VST3 formats by default
 
+    // List of valid file extensions
+    juce::StringArray validExtensions { "vst", "vst3", "component" };
+
     for (const auto& directoryPath : pluginDirectories)
     {
         juce::File directory(directoryPath);
@@ -101,15 +104,19 @@ void MainComponent::scanForPlugins()
             DBG("Scanning file: " << file.getFile().getFileName());
 
             // Check for plugin validity using extensions
-            if (file.getFile().hasFileExtension({"vst", "vst3", "component"}))
+            if (file.getFile().hasFileExtension(validExtensions))
             {
                 DBG("Found potential plugin: " << file.getFile().getFullPathName());
 
                 juce::PluginDescription description;
+                description.fileOrIdentifier = file.getFile().getFullPathName();
+                description.name = file.getFile().getFileName();
+                description.pluginFormatName = "Unknown";
+
                 juce::String errorMessage;
 
                 auto plugin = pluginFormatManager.createPluginInstance(
-                    juce::PluginDescription{ file.getFile().getFullPathName(), {}, {}, {}, 0, 0 },
+                    description,
                     44100.0, // sample rate
                     512,     // buffer size
                     errorMessage
@@ -135,6 +142,7 @@ void MainComponent::scanForPlugins()
     populatePluginDropdown();
     DBG("Plugin scan completed.");
 }
+
 bool MainComponent::validatePlugin(const juce::File& file)
 {
     juce::AudioPluginFormatManager formatManager;
