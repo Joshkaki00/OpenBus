@@ -89,56 +89,56 @@ void MainComponent::scanForPlugins()
     for (const auto& directoryPath : pluginDirectories)
     {
         juce::File directory(directoryPath);
-
+        
         if (!directory.isDirectory())
         {
             DBG("Directory not found: " << directory.getFullPathName());
             continue;
         }
-
+        
         DBG("Scanning directory: " << directory.getFullPathName());
-
+        
         // Use RangedDirectoryIterator for better and modern file iteration
         for (const auto& file : juce::RangedDirectoryIterator(directory, false, "*.*"))
         {
             DBG("Scanning file: " << file.getFile().getFileName());
-
+            
             // Check for plugin validity using extensions
-            if (file.getFile().hasFileExtension(validExtensions))
+            for (const auto& ext : validExtensions)
             {
-                DBG("Found potential plugin: " << file.getFile().getFullPathName());
-
-                juce::PluginDescription description;
-                description.fileOrIdentifier = file.getFile().getFullPathName();
-                description.name = file.getFile().getFileName();
-                description.pluginFormatName = "Unknown";
-
-                juce::String errorMessage;
-
-                auto plugin = pluginFormatManager.createPluginInstance(
-                    description,
-                    44100.0, // sample rate
-                    512,     // buffer size
-                    errorMessage
-                );
-
-                if (plugin)
+                if (file.getFile().hasFileExtension(ext))
                 {
-                    DBG("Successfully loaded plugin: " << file.getFile().getFileName());
-                    scannedPlugins.add(file.getFile().getFullPathName());
+                    DBG("Found potential plugin: " << file.getFile().getFullPathName());
+                    
+                    juce::PluginDescription description;
+                    description.fileOrIdentifier = file.getFile().getFullPathName();
+                    description.name = file.getFile().getFileName();
+                    description.pluginFormatName = "Unknown";
+                    
+                    juce::String errorMessage;
+                    
+                    auto plugin = pluginFormatManager.createPluginInstance(
+                                                                           description,
+                                                                           44100.0, // sample rate
+                                                                           512,     // buffer size
+                                                                           errorMessage
+                                                                           );
+                    
+                    if (plugin)
+                    {
+                        DBG("Successfully loaded plugin: " << file.getFile().getFileName());
+                        scannedPlugins.add(file.getFile().getFullPathName());
+                    }
+                    else
+                    {
+                        DBG("Failed to load plugin: " << file.getFile().getFileName() << " - " << errorMessage);
+                    }
+                    
+                    break; // Exit the loop once a matching extension is found
                 }
-                else
-                {
-                    DBG("Failed to load plugin: " << file.getFile().getFileName() << " - " << errorMessage);
-                }
-            }
-            else
-            {
-                DBG("Skipping unsupported file: " << file.getFile().getFullPathName());
             }
         }
     }
-
     populatePluginDropdown();
     DBG("Plugin scan completed.");
 }
