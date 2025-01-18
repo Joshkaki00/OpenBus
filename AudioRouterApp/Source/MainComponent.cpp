@@ -62,19 +62,21 @@ void MainComponent::scanForPlugins()
 
     // Define default plugin directories based on the OS
     #if JUCE_MAC
-    pluginDirectories.add("/Library/Audio/Plug-Ins/VST");
-    pluginDirectories.add("/Library/Audio/Plug-Ins/VST3");
-    pluginDirectories.add("/Library/Audio/Plug-Ins/Components"); // AU plugins
-    pluginDirectories.add("~/Library/Audio/Plug-Ins/VST");
-    pluginDirectories.add("~/Library/Audio/Plug-Ins/VST3");
-    pluginDirectories.add("~/Library/Audio/Plug-Ins/Components"); // User-level AU plugins
+        pluginDirectories.add("/Library/Audio/Plug-Ins/VST");
+        pluginDirectories.add("/Library/Audio/Plug-Ins/VST3");
+        pluginDirectories.add("/Library/Audio/Plug-Ins/Components");
+        pluginDirectories.add("~/Library/Audio/Plug-Ins/VST");
+        pluginDirectories.add("~/Library/Audio/Plug-Ins/VST3");
+        pluginDirectories.add("~/Library/Audio/Plug-Ins/Components");
+    #elif JUCE_WINDOWS
+        pluginDirectories.add("C:\\Program Files\\VSTPlugins");
+        pluginDirectories.add("C:\\Program Files\\Common Files\\VST3");
+        pluginDirectories.add("C:\\Program Files (x86)\\VSTPlugins");
+        pluginDirectories.add("C:\\Program Files (x86)\\Common Files\\VST3");
     #elif JUCE_LINUX
-    pluginDirectories.add("~/.vst");
-    pluginDirectories.add("~/.vst3");
-    pluginDirectories.add("/usr/lib/vst");
-    pluginDirectories.add("/usr/lib/vst3");
-    pluginDirectories.add("/usr/local/lib/vst");
-    pluginDirectories.add("/usr/local/lib/vst3");
+        pluginDirectories.add("~/.vst");
+        pluginDirectories.add("/usr/lib/vst");
+        pluginDirectories.add("/usr/local/lib/vst");
     #endif
 
     DBG("Starting plugin scan...");
