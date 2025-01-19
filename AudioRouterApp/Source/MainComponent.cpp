@@ -36,13 +36,20 @@ void scanPlugins()
    #if JUCE_WINDOWS
     directories.add("C:\\Program Files\\Common Files\\VST3"); // Default VST3 directory
     directories.add("C:\\Program Files (x86)\\Common Files\\VST3"); // For 32-bit plugins
+    directories.add("C:\\Program Files\\Common Files\\VST"); // Default VST directory
+    directories.add("C:\\Program Files (x86)\\Common Files\\VST"); // For 32-bit plugins
    #elif JUCE_MAC
     directories.add("~/Library/Audio/Plug-Ins/VST3"); // macOS user VST3 folder
     directories.add("/Library/Audio/Plug-Ins/VST3"); // macOS system VST3 folder
+    directories.add("/Library/Audio/Plug_Ins/VST"); // macOS system VST folder
+    directories.add("~/Library/Audio/Plug_Ins/VST"); // macOS user VST folder
    #elif JUCE_LINUX
     directories.add("~/.vst3"); // User VST3 folder
+    directories.add("~/.vst"); // User VST folder
     directories.add("/usr/lib/vst3"); // System VST3 folder
+    directories.add("/usr/lib/vst"); // System VST folder
     directories.add("/usr/local/lib/vst3"); // Local system VST3 folder
+    directories.add("/usr/local/lib/vst"); // Local system VST folder
    #endif
 
     // Scan for plugins in each directory
