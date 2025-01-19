@@ -1,0 +1,3 @@
+C:\dev\winter-intensive-project\AudioRouterApp\Builds\VisualStudio2022\x64\Debug\App\AudioRou.E4289EE9.Up2Date
+C:\dev\winter-intensive-project\AudioRouterApp\Builds\VisualStudio2022\x64\Debug\App\AudioRouterApp.exe
+C:\dev\winter-intensive-project\AudioRouterApp\Builds\VisualStudio2022\x64\Debug\App\libzmq-mt-4_3_5.dll
