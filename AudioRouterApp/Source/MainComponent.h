@@ -11,11 +11,11 @@ public:
 
     void paint(juce::Graphics&) override;
     void resized() override;
-    
+
+private:
     void scanForPlugins();              // Scan for plugins in default directories
     void openSelectedPlugin();          // Open the editor for the selected plugin
 
-private:
     juce::TextButton scanPluginsButton{"Scan Plugins"};
     juce::TextButton openPluginButton{"Open Plugin"};
     juce::ComboBox pluginDropdown;
