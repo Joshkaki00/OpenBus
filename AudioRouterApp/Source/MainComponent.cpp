@@ -41,8 +41,8 @@ void MainComponent::scanForPlugins()
    #elif JUCE_MAC
     directories.add("~/Library/Audio/Plug-Ins/VST3"); // macOS user VST3 folder
     directories.add("/Library/Audio/Plug-Ins/VST3"); // macOS system VST3 folder
-    directories.add("/Library/Audio/Plug_Ins/VST"); // macOS system VST folder
-    directories.add("~/Library/Audio/Plug_Ins/VST"); // macOS user VST folder
+    directories.add("/Library/Audio/Plug-Ins/VST"); // macOS system VST folder
+    directories.add("~/Library/Audio/Plug-Ins/VST"); // macOS user VST folder
    #elif JUCE_LINUX
     directories.add("~/.vst3"); // User VST3 folder
     directories.add("~/.vst"); // User VST folder
