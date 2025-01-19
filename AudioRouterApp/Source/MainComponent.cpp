@@ -31,6 +31,8 @@ void MainComponent::resized()
 void MainComponent::scanForPlugins()
 {
     pluginDropdown.clear();
+
+    // Define directories to search for plugins
     juce::StringArray directories{
         "/Library/Audio/Plug-Ins/VST3", // macOS
         "C:\\Program Files\\Common Files\\VST3", // Windows
@@ -40,12 +42,17 @@ void MainComponent::scanForPlugins()
     for (const auto& dir : directories)
     {
         juce::File pluginDir(dir);
+
         if (pluginDir.isDirectory())
         {
-            for (juce::DirectoryIterator it(pluginDir, false, "*.vst3"); it.next();)
+            // Use RangedDirectoryIterator to scan the directory
+            for (const auto& file : juce::RangedDirectoryIterator(pluginDir, false, "*.vst3"))
             {
-                pluginsFound.add(it.getFile().getFullPathName());
-                pluginDropdown.addItem(it.getFile().getFileName(), pluginsFound.size());
+                juce::File pluginFile = file.getFile();
+
+                // Add the plugin file to the dropdown and the list
+                pluginsFound.add(pluginFile.getFullPathName());
+                pluginDropdown.addItem(pluginFile.getFileName(), pluginsFound.size());
             }
         }
     }
