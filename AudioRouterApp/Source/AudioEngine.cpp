@@ -34,7 +34,7 @@ bool AudioEngine::loadPlugin(const juce::File& file)
 
 juce::AudioProcessorEditor* AudioEngine::createEditorForPlugin(int index)
 {
-    if (auto* plugin = loadedPlugins[index]->get())
+    if (auto* plugin = loadedPlugins[index])
     {
         return plugin->hasEditor() ? plugin->createEditorIfNeeded() : nullptr;
     }
