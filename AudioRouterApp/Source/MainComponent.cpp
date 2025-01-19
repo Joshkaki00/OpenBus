@@ -28,32 +28,44 @@ void MainComponent::resized()
     openPluginButton.setBounds(area.removeFromTop(40));
 }
 
-void MainComponent::scanForPlugins()
+void scanPlugins()
 {
-    pluginDropdown.clear();
+    juce::StringArray directories;
 
-    // Define directories to search for plugins
-    juce::StringArray directories{
-        "/Library/Audio/Plug-Ins/VST3", // macOS
-        "C:\\Program Files\\Common Files\\VST3", // Windows
-        "~/.vst3", "/usr/lib/vst3", "/usr/local/lib/vst3" // Linux
-    };
+    // Define platform-specific directories
+   #if JUCE_WINDOWS
+    directories.add("C:\\Program Files\\Common Files\\VST3"); // Default VST3 directory
+    directories.add("C:\\Program Files (x86)\\Common Files\\VST3"); // For 32-bit plugins
+   #elif JUCE_MAC
+    directories.add("~/Library/Audio/Plug-Ins/VST3"); // macOS user VST3 folder
+    directories.add("/Library/Audio/Plug-Ins/VST3"); // macOS system VST3 folder
+   #elif JUCE_LINUX
+    directories.add("~/.vst3"); // User VST3 folder
+    directories.add("/usr/lib/vst3"); // System VST3 folder
+    directories.add("/usr/local/lib/vst3"); // Local system VST3 folder
+   #endif
 
+    // Scan for plugins in each directory
     for (const auto& dir : directories)
     {
         juce::File pluginDir(dir);
 
         if (pluginDir.isDirectory())
         {
-            // Use RangedDirectoryIterator to scan the directory
+            DBG("Scanning directory: " << pluginDir.getFullPathName());
+
+            // Use RangedDirectoryIterator to find all VST3 plugins
             for (const auto& file : juce::RangedDirectoryIterator(pluginDir, false, "*.vst3"))
             {
                 juce::File pluginFile = file.getFile();
 
-                // Add the plugin file to the dropdown and the list
-                pluginsFound.add(pluginFile.getFullPathName());
-                pluginDropdown.addItem(pluginFile.getFileName(), pluginsFound.size());
+                // Log or process the plugin file
+                DBG("Found plugin: " << pluginFile.getFullPathName());
             }
+        }
+        else
+        {
+            DBG("Invalid or inaccessible directory: " << dir);
         }
     }
 }
