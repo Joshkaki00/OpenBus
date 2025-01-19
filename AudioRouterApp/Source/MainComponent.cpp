@@ -28,7 +28,7 @@ void MainComponent::resized()
     openPluginButton.setBounds(area.removeFromTop(40));
 }
 
-void scanPlugins()
+void MainComponent::scanForPlugins()
 {
     juce::StringArray directories;
 
