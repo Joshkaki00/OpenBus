@@ -77,6 +77,7 @@
         <MODULEPATH id="juce_gui_extra" path="../../../../Users/joshkaki/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
+<<<<<<< HEAD
     <VS2022 targetFolder="Builds/VisualStudio2022">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug"/>
@@ -95,6 +96,29 @@
         <MODULEPATH id="juce_graphics" path="~/JUCE/modules"/>
         <MODULEPATH id="juce_gui_basics" path="~/JUCE/modules"/>
         <MODULEPATH id="juce_gui_extra" path="~/JUCE/modules"/>
+=======
+    <VS2022 targetFolder="Builds/VisualStudio2022" vstLegacyFolder="..\..\..\vstsdk2.4\pluginterfaces\vst2.x"
+            extraLinkerFlags="-lzmq">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\vstsdk2.4&#10;C:\vstsdk2.4/pluginterfaces&#10;C:\vstsdk2.4/pluginterfaces/vst2.x&#10;C:\VST_SDK/vst3sdk&#10;C:\VST_SDK/vst3sdk/pluginterfaces&#10;C:\VST_SDK/vst3sdk/pluginterfaces/vst"
+                       defines="VST2_SDK_ROOT=C:\vstsdk2.4&#10;VST3_SDK_ROOT=C:\VST_SDK/vst3sdk"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\vstsdk2.4&#10;C:\vstsdk2.4/pluginterfaces&#10;C:\vstsdk2.4/pluginterfaces/vst2.x&#10;C:\VST_SDK/vst3sdk&#10;C:\VST_SDK/vst3sdk/pluginterfaces&#10;C:\VST_SDK/vst3sdk/pluginterfaces/vst"
+                       defines="VST2_SDK_ROOT=C:\vstsdk2.4&#10;VST3_SDK_ROOT=C:\VST_SDK/vst3sdk"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_dsp" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+>>>>>>> f30410f3f5f8708115f223cef06d853f38528ed5
       </MODULEPATHS>
     </VS2022>
   </EXPORTFORMATS>

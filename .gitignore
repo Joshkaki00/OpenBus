@@ -269,7 +269,33 @@ pip-selfcheck.json
 # Vs Code config
 .vscode/
 
-# AudioRouter user state
+# AudioRouter MacOS Build States
 /AudioRouterApp/Builds/MacOSX/AudioRouterApp.xcodeproj/project.xcworkspace/xcuserdata/
+*.mode1v3
+*.pbxuser
+*.perspectivev3
+*.xccheckout
+*.xcscmblueprint
+*.xcscheme
+xcuserdata
+**/MacOSX/build
+**/IDEWorkspaceChecks.plist
+
+# AudioRouter Windows Build States
+/AudioRouterApp/Builds/Windows/AudioRouterApp.sln
+*.ncb
+*.suo
+*.ilk
+*.pch
+*.pdb
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+**/VisualStudio [0-9]*/Win32
+**/VisualStudio [0-9]*/x64
+**/Builds/x64
+**/.vs
+
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,python,c++,venv
