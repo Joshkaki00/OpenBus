@@ -15,12 +15,9 @@ bool AudioEngine::loadPlugin(const juce::File& file)
     juce::PluginDescription pluginDesc;
     juce::String error;
 
-    // Scan the file and fill the PluginDescription
-    if (!pluginFormatManager.getPluginForFile(pluginDesc, file))
-    {
-        DBG("Failed to scan plugin: " << file.getFullPathName());
-        return false;
-    }
+    // Manually populate PluginDescription
+    pluginDesc.fileOrIdentifier = file.getFullPathName();
+    pluginDesc.pluginFormatName = "VST3"; // Or set dynamically based on file type
 
     // Create the plugin instance
     auto instance = pluginFormatManager.createPluginInstance(pluginDesc, 44100.0, 512, error);
@@ -37,7 +34,7 @@ bool AudioEngine::loadPlugin(const juce::File& file)
 
 juce::AudioProcessorEditor* AudioEngine::createEditorForPlugin(int index)
 {
-    if (auto* plugin = loadedPlugins[index].get())
+    if (auto* plugin = loadedPlugins[index]->get())
     {
         return plugin->hasEditor() ? plugin->createEditorIfNeeded() : nullptr;
     }
