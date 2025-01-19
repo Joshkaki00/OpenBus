@@ -21,7 +21,7 @@ void ZeroMQServer::listen()
         if (!result)
         {
             std::cerr << "Failed to receive message from socket." << std::endl;
-            return; // Or handle the error appropriately
+            return;
         }
 
         try
@@ -29,7 +29,6 @@ void ZeroMQServer::listen()
             std::string msg(static_cast<char*>(request.data()), request.size());
             nlohmann::json command = nlohmann::json::parse(msg);
 
-            // Use the Singleton instance of AudioEngine
             nlohmann::json response = processCommand(command, AudioEngine::getInstance());
 
             zmq::message_t reply(response.dump());
@@ -37,10 +36,7 @@ void ZeroMQServer::listen()
         }
         catch (const std::exception& e)
         {
-            nlohmann::json errorResponse = {
-                {"status", "error"},
-                {"message", e.what()}
-            };
+            nlohmann::json errorResponse = {{"status", "error"}, {"message", e.what()}};
 
             zmq::message_t reply(errorResponse.dump());
             socket.send(reply, zmq::send_flags::none);
