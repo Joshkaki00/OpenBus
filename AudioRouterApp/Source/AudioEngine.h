@@ -1,9 +1,6 @@
 #pragma once
-#ifndef AUDIOENGINE_H
-#define AUDIOENGINE_H
 
-#include <juce_core/juce_core.h>
-#include <juce_audio_devices/juce_audio_devices.h>
+#include <juce_audio_processors/juce_audio_processors.h>
 #include <nlohmann/json.hpp>
 
 class AudioEngine
@@ -11,28 +8,22 @@ class AudioEngine
 public:
     static AudioEngine& getInstance()
     {
-        static AudioEngine instance; // Thread-safe in C++11 and later
+        static AudioEngine instance;
         return instance;
     }
 
-    nlohmann::json getDeviceList(); // Ensure this matches the definition in the .cpp file
-    nlohmann::json setInputDevice(const std::string& deviceName); // Match this
-    nlohmann::json setOutputDevice(const std::string& deviceName); // Match this
+    AudioEngine();
+    ~AudioEngine();
 
-    // Other public methods
-    bool loadPlugin(const juce::File& file);
-    bool savePreset(const juce::File& file);
-    bool loadPreset(const juce::File& file);
+    bool loadPlugin(const juce::File& file);              // Load a plugin from a file
+    void clearPlugins();                                  // Unload all plugins
+    juce::AudioProcessorEditor* createEditorForPlugin(int index); // Create an editor for a loaded plugin
+    nlohmann::json getDeviceList();                      // Get audio input/output devices
+    nlohmann::json setInputDevice(const std::string& deviceName);
+    nlohmann::json setOutputDevice(const std::string& deviceName);
 
 private:
-    AudioEngine() = default; // Private constructor
-    ~AudioEngine() = default;
-
-    // Delete copy constructor and assignment operator to prevent copies
-    AudioEngine(const AudioEngine&) = delete;
-    AudioEngine& operator=(const AudioEngine&) = delete;
-
-    juce::AudioDeviceManager deviceManager; // Example member variable
+    juce::AudioPluginFormatManager pluginFormatManager;
+    juce::OwnedArray<juce::AudioPluginInstance> loadedPlugins;
+    juce::AudioDeviceManager deviceManager;
 };
-
-#endif // AUDIOENGINE_H
