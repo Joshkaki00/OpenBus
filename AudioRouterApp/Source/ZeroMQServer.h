@@ -1,5 +1,4 @@
-#ifndef ZEROMQ_SERVER_H
-#define ZEROMQ_SERVER_H
+#pragma once
 
 #include <nlohmann/json.hpp>
 #include <zmq.hpp>
@@ -20,6 +19,3 @@ private:
     zmq::context_t context{1};
     zmq::socket_t socket;
 };
-
-
-#endif // ZEROMQ_SERVER_H

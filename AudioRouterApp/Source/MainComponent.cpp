@@ -32,27 +32,14 @@ void MainComponent::scanForPlugins()
 {
     juce::StringArray directories;
 
-    // Define platform-specific directories
-   #if JUCE_WINDOWS
-    directories.add("C:\\Program Files\\Common Files\\VST3"); // Default VST3 directory
-    directories.add("C:\\Program Files (x86)\\Common Files\\VST3"); // For 32-bit plugins
-    directories.add("C:\\Program Files\\Common Files\\VST"); // Default VST directory
-    directories.add("C:\\Program Files (x86)\\Common Files\\VST"); // For 32-bit plugins
-   #elif JUCE_MAC
-    directories.add("~/Library/Audio/Plug-Ins/VST3"); // macOS user VST3 folder
-    directories.add("/Library/Audio/Plug-Ins/VST3"); // macOS system VST3 folder
-    directories.add("/Library/Audio/Plug-Ins/VST"); // macOS system VST folder
-    directories.add("~/Library/Audio/Plug-Ins/VST"); // macOS user VST folder
-   #elif JUCE_LINUX
-    directories.add("~/.vst3"); // User VST3 folder
-    directories.add("~/.vst"); // User VST folder
-    directories.add("/usr/lib/vst3"); // System VST3 folder
-    directories.add("/usr/lib/vst"); // System VST folder
-    directories.add("/usr/local/lib/vst3"); // Local system VST3 folder
-    directories.add("/usr/local/lib/vst"); // Local system VST folder
-   #endif
+#if JUCE_WINDOWS
+    directories.add("C:\\Program Files\\Common Files\\VST3");
+#elif JUCE_MAC
+    directories.add("~/Library/Audio/Plug-Ins/VST3");
+#elif JUCE_LINUX
+    directories.add("~/.vst3");
+#endif
 
-    // Scan for plugins in each directory
     for (const auto& dir : directories)
     {
         juce::File pluginDir(dir);
@@ -61,20 +48,16 @@ void MainComponent::scanForPlugins()
         {
             DBG("Scanning directory: " << pluginDir.getFullPathName());
 
-            // Use RangedDirectoryIterator to find all VST3 plugins
             for (const auto& file : juce::RangedDirectoryIterator(pluginDir, false, "*.vst3"))
             {
-                juce::File pluginFile = file.getFile();
-
-                // Log or process the plugin file
-                DBG("Found plugin: " << pluginFile.getFullPathName());
+                pluginsFound.add(file.getFile().getFullPathName());
             }
         }
-        else
-        {
-            DBG("Invalid or inaccessible directory: " << dir);
-        }
     }
+
+    pluginDropdown.clear();
+    for (int i = 0; i < pluginsFound.size(); ++i)
+        pluginDropdown.addItem(pluginsFound[i], i + 1);
 }
 
 void MainComponent::openSelectedPlugin()
