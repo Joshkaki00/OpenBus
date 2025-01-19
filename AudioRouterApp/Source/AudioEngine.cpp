@@ -15,11 +15,9 @@ bool AudioEngine::loadPlugin(const juce::File& file)
     juce::PluginDescription pluginDesc;
     juce::String error;
 
-    // Manually populate PluginDescription
     pluginDesc.fileOrIdentifier = file.getFullPathName();
-    pluginDesc.pluginFormatName = "VST3"; // Or set dynamically based on file type
+    pluginDesc.pluginFormatName = "VST3";
 
-    // Create the plugin instance
     auto instance = pluginFormatManager.createPluginInstance(pluginDesc, 44100.0, 512, error);
 
     if (instance)
@@ -47,7 +45,6 @@ nlohmann::json AudioEngine::getDeviceList()
     juce::StringArray inputs = deviceManager.getCurrentAudioDevice()->getInputChannelNames();
     juce::StringArray outputs = deviceManager.getCurrentAudioDevice()->getOutputChannelNames();
 
-    // Convert juce::StringArray to std::vector<std::string>
     std::vector<std::string> inputDevices;
     for (const auto& input : inputs)
         inputDevices.push_back(input.toStdString());
