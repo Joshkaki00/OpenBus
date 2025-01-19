@@ -47,8 +47,17 @@ nlohmann::json AudioEngine::getDeviceList()
     juce::StringArray inputs = deviceManager.getCurrentAudioDevice()->getInputChannelNames();
     juce::StringArray outputs = deviceManager.getCurrentAudioDevice()->getOutputChannelNames();
 
-    response["inputs"] = inputs.toStdString();
-    response["outputs"] = outputs.toStdString();
+    // Convert juce::StringArray to std::vector<std::string>
+    std::vector<std::string> inputDevices;
+    for (const auto& input : inputs)
+        inputDevices.push_back(input.toStdString());
+
+    std::vector<std::string> outputDevices;
+    for (const auto& output : outputs)
+        outputDevices.push_back(output.toStdString());
+
+    response["inputs"] = inputDevices;
+    response["outputs"] = outputDevices;
     return response;
 }
 
