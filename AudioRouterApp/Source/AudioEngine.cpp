@@ -12,8 +12,18 @@ bool AudioEngine::loadPlugin(const juce::File& file)
 {
     if (!file.existsAsFile()) return false;
 
+    juce::PluginDescription pluginDesc;
     juce::String error;
-    auto instance = pluginFormatManager.createPluginInstance(file, 44100.0, 512, error);
+
+    // Scan the file and fill the PluginDescription
+    if (!pluginFormatManager.getPluginForFile(pluginDesc, file))
+    {
+        DBG("Failed to scan plugin: " << file.getFullPathName());
+        return false;
+    }
+
+    // Create the plugin instance
+    auto instance = pluginFormatManager.createPluginInstance(pluginDesc, 44100.0, 512, error);
 
     if (instance)
     {
@@ -23,11 +33,6 @@ bool AudioEngine::loadPlugin(const juce::File& file)
 
     DBG("Failed to load plugin: " << error);
     return false;
-}
-
-void AudioEngine::clearPlugins()
-{
-    loadedPlugins.clear();
 }
 
 juce::AudioProcessorEditor* AudioEngine::createEditorForPlugin(int index)
