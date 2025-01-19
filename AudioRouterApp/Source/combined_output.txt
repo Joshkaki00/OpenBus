@@ -133,6 +133,8 @@ private:
 #endif // AUDIOENGINE_H
 #ifndef CONFIG_H
 #define CONFIG_H
+#define JUCE_PLUGINHOST_AU 1
+#define JUCE_PLUGINHOST_AU3 1
 
 // Fix for SMTG_CPP20 redefinition warnings
 #ifndef SMTG_CPP20
@@ -205,44 +207,41 @@ START_JUCE_APPLICATION(AudioRouterApp)
 
 MainComponent::MainComponent()
 {
-    // Initialize LookAndFeel
     setLookAndFeel(&customLookAndFeel);
-
-    // Initialize AudioDeviceManager
     audioDeviceManager.initialiseWithDefaultDevices(2, 2);
-
-    // Register MainComponent as a listener
     audioDeviceManager.addChangeListener(this);
 
-    // Setup dropdowns
     setupDropdown(hardwareInputsMenu, "Hardware Inputs", hardwareInputsLabel);
     setupDropdown(hardwareOutMenu, "Hardware Outputs", hardwareOutLabel);
     setupDropdown(pluginDropdown, "Plugins", pluginLabel);
 
-    // Add the Scan Plugins button
     addAndMakeVisible(scanPluginsButton);
     scanPluginsButton.onClick = [this]() { scanForPlugins(); };
 
-    // Populate dropdowns with initial device names
     changeListenerCallback(&audioDeviceManager);
-
     setSize(600, 500);
 }
 
 MainComponent::~MainComponent()
 {
-    // Remove MainComponent as a listener
     audioDeviceManager.removeChangeListener(this);
-
-    // Reset LookAndFeel
     setLookAndFeel(nullptr);
+}
+
+void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
+{
+    addAndMakeVisible(dropdown);
+    dropdown.setJustificationType(juce::Justification::centredLeft);
+
+    addAndMakeVisible(label);
+    label.setText(labelText, juce::dontSendNotification);
+    label.attachToComponent(&dropdown, true);
 }
 
 void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
     if (source == &audioDeviceManager)
     {
-        // Get the current device and update dropdowns
         if (auto* currentDevice = audioDeviceManager.getCurrentAudioDevice())
         {
             populateDropdown(hardwareInputsMenu, currentDevice->getInputChannelNames());
@@ -261,86 +260,142 @@ void MainComponent::populateDropdown(juce::ComboBox& dropdown, const juce::Strin
         dropdown.addItem("No devices available", 1);
 }
 
-void MainComponent::setupDropdown(juce::ComboBox& dropdown, const juce::String& labelText, juce::Label& label)
-{
-    addAndMakeVisible(dropdown);
-    dropdown.setJustificationType(juce::Justification::centredLeft);
-
-    addAndMakeVisible(label);
-    label.setText(labelText, juce::dontSendNotification);
-    label.attachToComponent(&dropdown, true);
-}
-
 void MainComponent::scanForPlugins()
 {
-    scannedPlugins.clear();
+    juce::StringArray pluginDirectories;
 
-    juce::Array<juce::File> pluginDirectories = {
-        juce::File("/Library/Audio/Plug-Ins/VST"),
-        juce::File("/Library/Audio/Plug-Ins/VST3"),
-        juce::File("/Library/Audio/Plug-Ins/Components")
-    };
+    // Define default plugin directories based on the OS
+    #if JUCE_MAC
+        pluginDirectories.add("/Library/Audio/Plug-Ins/VST");
+        pluginDirectories.add("/Library/Audio/Plug-Ins/VST3");
+        pluginDirectories.add("/Library/Audio/Plug-Ins/Components");
+        pluginDirectories.add("~/Library/Audio/Plug-Ins/VST");
+        pluginDirectories.add("~/Library/Audio/Plug-Ins/VST3");
+        pluginDirectories.add("~/Library/Audio/Plug-Ins/Components");
+    #elif JUCE_WINDOWS
+        pluginDirectories.add("C:\\Program Files\\VSTPlugins");
+        pluginDirectories.add("C:\\Program Files\\Common Files\\VST3");
+        pluginDirectories.add("C:\\Program Files (x86)\\VSTPlugins");
+        pluginDirectories.add("C:\\Program Files (x86)\\Common Files\\VST3");
+    #elif JUCE_LINUX
+        pluginDirectories.add("~/.vst");
+        pluginDirectories.add("/usr/lib/vst");
+        pluginDirectories.add("/usr/local/lib/vst");
+    #endif
 
-    juce::StringArray supportedExtensions = { ".vst", ".vst3", ".component" };
+    DBG("Starting plugin scan...");
 
-    for (const auto& dir : pluginDirectories)
+    // Add formats to the AudioPluginFormatManager
+    juce::AudioPluginFormatManager pluginFormatManager;
+    pluginFormatManager.addDefaultFormats(); // Adds AU, VST, and VST3 formats by default
+
+    // List of valid file extensions
+    juce::StringArray validExtensions { "vst", "vst3", "component" };
+
+    for (const auto& directoryPath : pluginDirectories)
     {
-        if (dir.isDirectory())
+        juce::File directory(directoryPath);
+        
+        if (!directory.isDirectory())
         {
-            auto files = dir.findChildFiles(juce::File::findFiles, true);
-            for (const auto& file : files)
+            DBG("Directory not found: " << directory.getFullPathName());
+            continue;
+        }
+        
+        DBG("Scanning directory: " << directory.getFullPathName());
+        
+        // Use RangedDirectoryIterator for better and modern file iteration
+        for (const auto& file : juce::RangedDirectoryIterator(directory, false, "*.*"))
+        {
+            DBG("Scanning file: " << file.getFile().getFileName());
+            
+            // Check for plugin validity using extensions
+            for (const auto& ext : validExtensions)
             {
-                if (supportedExtensions.contains(file.getFileExtension()))
+                if (file.getFile().hasFileExtension(ext))
                 {
-                    try
+                    DBG("Found potential plugin: " << file.getFile().getFullPathName());
+                    
+                    juce::PluginDescription description;
+                    description.fileOrIdentifier = file.getFile().getFullPathName();
+                    description.name = file.getFile().getFileName();
+                    description.pluginFormatName = "Unknown";
+                    
+                    juce::String errorMessage;
+                    
+                    auto plugin = pluginFormatManager.createPluginInstance(
+                                                                           description,
+                                                                           44100.0, // sample rate
+                                                                           512,     // buffer size
+                                                                           errorMessage
+                                                                           );
+                    
+                    if (plugin)
                     {
-                        // Validate plugin here before adding to the list
-                        if (validatePlugin(file))
-                            scannedPlugins.add(file.getFullPathName());
-                        else
-                            DBG("Invalid plugin: " << file.getFullPathName());
+                        DBG("Successfully loaded plugin: " << file.getFile().getFileName());
+                        scannedPlugins.add(file.getFile().getFullPathName());
                     }
-                    catch (const std::exception& e)
+                    else
                     {
-                        DBG("Error loading plugin: " << file.getFullPathName() << " - " << e.what());
+                        DBG("Failed to load plugin: " << file.getFile().getFileName() << " - " << errorMessage);
                     }
-                    catch (...)
-                    {
-                        DBG("Unknown error loading plugin: " << file.getFullPathName());
-                    }
+                    
+                    break; // Exit the loop once a matching extension is found
                 }
             }
         }
     }
-
-    // Update the plugin dropdown
     populatePluginDropdown();
+    DBG("Plugin scan completed.");
 }
 
 bool MainComponent::validatePlugin(const juce::File& file)
 {
     juce::AudioPluginFormatManager formatManager;
-    formatManager.addDefaultFormats(); // Register available plugin formats
+    formatManager.addDefaultFormats();
+
+    DBG("Validating plugin binary: " << file.getFullPathName());
 
     juce::OwnedArray<juce::PluginDescription> pluginDescriptions;
 
-    // Scan for plugin descriptions in the file
     for (auto* format : formatManager.getFormats())
     {
+        DBG("Trying format: " << format->getName());
+
         if (format->fileMightContainThisPluginType(file.getFullPathName()))
         {
-            format->findAllTypesForFile(pluginDescriptions, file.getFullPathName());
+            try
+            {
+                DBG("Checking if file might contain a valid plugin: " << file.getFullPathName());
+                format->findAllTypesForFile(pluginDescriptions, file.getFullPathName());
+
+                if (!pluginDescriptions.isEmpty())
+                {
+                    DBG("Plugin is valid: " << pluginDescriptions[0]->name);
+                    return true;
+                }
+                else
+                {
+                    DBG("No valid plugin descriptions found for: " << file.getFullPathName());
+                }
+            }
+            catch (const std::exception& e)
+            {
+                DBG("Validation error for " << file.getFullPathName() << ": " << e.what());
+            }
+            catch (...)
+            {
+                DBG("Unknown validation error for: " << file.getFullPathName());
+            }
+        }
+        else
+        {
+            DBG("File does not match format: " << format->getName());
         }
     }
 
-    if (pluginDescriptions.isEmpty())
-    {
-        DBG("No valid plugin descriptions found for: " << file.getFullPathName());
-        return false;
-    }
-
-    DBG("Valid plugin found: " << pluginDescriptions[0]->name);
-    return true;
+    DBG("Validation failed for plugin binary: " << file.getFullPathName());
+    return false;
 }
 
 void MainComponent::populatePluginDropdown()
@@ -349,6 +404,7 @@ void MainComponent::populatePluginDropdown()
 
     if (scannedPlugins.isEmpty())
     {
+        DBG("No plugins found.");
         pluginDropdown.addItem("No plugins found", 1);
     }
     else
